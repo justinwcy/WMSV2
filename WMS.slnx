@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="OrganizationService/OrganizationService.csproj" Id="0e810355-f49a-437e-853f-cb33a2d40709" />
+  <Project Path="WMSCommon/WMSCommon.csproj" />
+</Solution>
