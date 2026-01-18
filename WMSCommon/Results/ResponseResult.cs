@@ -1,4 +1,4 @@
-﻿namespace WMSCommon.Responses
+﻿namespace WMSCommon.Results
 {
     public record ResponseResult(bool Success, string Message)
     {

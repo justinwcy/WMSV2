@@ -1,0 +1,22 @@
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+using Microsoft.AspNetCore.Identity;
+
+using WMSCommon.Entities;
+
+namespace OrganizationService.Models
+{
+    public class Staff : IdentityUser<Guid>, ITenantEntity
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public ICollection<UserToken> UserTokens { get; private set; }
+        public Company StaffCompany { get; set; }
+        public Guid CompanyId { get; set; }
+
+        public ICollection<StaffRole> UserRoles { get; set; } = new List<StaffRole>();
+
+        [NotMapped]
+        public string Password { get; set; }
+    }
+}

@@ -1,8 +1,7 @@
 ﻿namespace WMSCommon.Entities
 {
-    public abstract class BaseEntity
+    public abstract class GenericEntity : IGenericEntity
     {
         public Guid Id { get; set; } = Guid.CreateVersion7();
-        public Guid CompanyId { get; set; }
     }
 }
