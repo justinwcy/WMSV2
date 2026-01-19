@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OrganizationService.Contexts;
 using OrganizationService.DbContexts;
-using Warehouse.DbContexts;
-
 using WMSCommon.Contexts;
 
 var builder = WebApplication.CreateBuilder(args);
