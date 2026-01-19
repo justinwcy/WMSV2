@@ -19,12 +19,12 @@ namespace OrganizationService.Configurations
             builder
                 .HasOne(s => s.StaffCompany)
                 .WithMany(c => c.Staffs)
-                .HasForeignKey(s => s.CompanyId)
+                .HasForeignKey(s => s.StaffCompanyId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(s => new
             {
-                s.CompanyId,
+                CompanyId = s.StaffCompanyId,
                 s.UserName,
                 s.Email,
                 s.FirstName,

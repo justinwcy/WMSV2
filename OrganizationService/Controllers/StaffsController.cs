@@ -20,10 +20,10 @@ namespace OrganizationService.Controllers
         IStaffRepository staffRepository) : ControllerBase
     {
         [Authorize]
-        [HttpGet("{staffId:guid}", Name = "GetUserById")]
-        public async Task<ActionResult<StaffReadDTO>> GetUserById(Guid staffId)
+        [HttpGet("{id:guid}", Name = "GetById")]
+        public async Task<ActionResult<StaffReadDTO>> GetById(Guid id)
         {
-            var staff = await staffRepository.GetByIdAsync(staffId);
+            var staff = await staffRepository.GetByIdAsync(id);
             if (staff == null)
             {
                 return NotFound();
@@ -34,29 +34,29 @@ namespace OrganizationService.Controllers
         }
 
         [HttpPost("Register")]
-        public async Task<ActionResult<StaffReadDTO>> Register(RegisterDTO registerDTO)
+        public async Task<ActionResult<StaffReadDTO>> Register(StaffRegisterDTO staffRegisterDTO)
         {
-            var staff = registerDTO.ToModel();
+            var staff = staffRegisterDTO.ToModel();
             var result = await staffRepository.CreateAsync(staff);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Message);
             }
             
-            return CreatedAtRoute(nameof(GetUserById),
+            return CreatedAtRoute(nameof(GetById),
                 new { userId = staff.Id }, staff.ToReadDTO());
         }
 
         [HttpPost("Login")]
-        public async Task<ActionResult<StaffReadDTO>> Login(LoginDTO loginDTO)
+        public async Task<ActionResult<StaffReadDTO>> Login(StaffLoginDTO staffLoginDTO)
         {
-            var result = await staffRepository.Login(loginDTO.Email, loginDTO.Password);
+            var result = await staffRepository.Login(staffLoginDTO.Email, staffLoginDTO.Password);
             if (!result.IsSuccess)
             {
                 return BadRequest(result.Message);
             }
 
-            var staff = await staffRepository.GetUserByEmail(loginDTO.Email);
+            var staff = await staffRepository.GetUserByEmail(staffLoginDTO.Email);
             var token = await tokenService.CreateToken(staff);
             var refreshToken = await tokenService.CreateRefreshToken(staff);
 
@@ -106,13 +106,13 @@ namespace OrganizationService.Controllers
         }
 
         [Authorize]
-        [HttpPatch("{staffId:guid}")]
-        public async Task<ActionResult<StaffReadDTO>> UpdateUser(
-            Guid staffId,
-            UpdateStaffDTO updateUserDTO)
+        [HttpPatch("{id:guid}")]
+        public async Task<ActionResult<StaffReadDTO>> Update(
+            Guid id,
+            StaffUpdateDTO staffUpdateDTO)
         {
-            Staff staff = updateUserDTO.ToModel();
-            staff.Id = staffId;
+            Staff staff = staffUpdateDTO.ToModel();
+            staff.Id = id;
 
             RepositoryResult<Staff> updateUserResult = await staffRepository.UpdateAsync(staff);
             if (!updateUserResult.IsSuccess)
@@ -121,7 +121,7 @@ namespace OrganizationService.Controllers
             }
 
             RepositoryResult<Staff> updateRoleResult = await staffRepository.UpdateUserRoles(
-                staffId, updateUserDTO.Roles);
+                id, staffUpdateDTO.Roles);
             if (!updateRoleResult.IsSuccess)
             {
                 return StatusCode(500, updateRoleResult.Message);
@@ -143,12 +143,12 @@ namespace OrganizationService.Controllers
         [HttpPost("ChangePassword/{userId}")]
         public async Task<ActionResult> ChangeUserPassword(
             string userId,
-            ChangePasswordDTO changePasswordDTO)
+            StaffChangePasswordDTO staffChangePasswordDTO)
         {
             var result = await staffRepository.ChangePassword(
                 userId,
-                changePasswordDTO.OldPassword,
-                changePasswordDTO.NewPassword);
+                staffChangePasswordDTO.OldPassword,
+                staffChangePasswordDTO.NewPassword);
 
             if (!result.IsSuccess)
             {
@@ -185,10 +185,10 @@ namespace OrganizationService.Controllers
         }
 
         [Authorize(Roles = nameof(Role.Admin))]
-        [HttpDelete("{staffId:guid}")]
-        public async Task<IActionResult> DeleteUser(Guid staffId)
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeleteUser(Guid id)
         {
-            var result = await staffRepository.DeleteAsync(staffId);
+            var result = await staffRepository.DeleteAsync(id);
             if (!result)
             {
                 return NotFound(result);

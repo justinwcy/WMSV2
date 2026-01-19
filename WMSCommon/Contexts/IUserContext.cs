@@ -1,7 +1,8 @@
 ﻿namespace WMSCommon.Contexts
 {
-    public interface ICompanyContext
+    public interface IUserContext
     {
-        Guid CompanyId { get; }
+        public Guid UserId { get; }
+        public Guid CompanyId { get; }
     }
 }

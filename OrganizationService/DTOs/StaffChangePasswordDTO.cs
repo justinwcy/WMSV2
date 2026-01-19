@@ -1,6 +1,6 @@
 ﻿namespace OrganizationService.DTOs
 {
-    public class ChangePasswordDTO
+    public class StaffChangePasswordDTO
     {
         public string OldPassword { get; set; }
         public string NewPassword { get; set; }

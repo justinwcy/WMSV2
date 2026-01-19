@@ -15,22 +15,23 @@ namespace OrganizationService.Mappings
             };
         }
 
-        public static Staff ToModel(this RegisterDTO registerDTO)
+        public static Staff ToModel(this StaffRegisterDTO staffRegisterDTO)
         {
             return new Staff()
             {
-                UserName = registerDTO.Username,
-                Email = registerDTO.Email,
-                Password = registerDTO.Password,
+                UserName = staffRegisterDTO.Username,
+                Email = staffRegisterDTO.Email,
+                Password = staffRegisterDTO.Password,
+                CompanyId = staffRegisterDTO.CompanyId
             };
         }
 
-        public static Staff ToModel(this UpdateStaffDTO updateUserDTO)
+        public static Staff ToModel(this StaffUpdateDTO staffUpdateDTO)
         {
             return new Staff()
             {
-                UserName = updateUserDTO.Username,
-                Email = updateUserDTO.Email,
+                UserName = staffUpdateDTO.Username,
+                Email = staffUpdateDTO.Email,
             };
         }
 

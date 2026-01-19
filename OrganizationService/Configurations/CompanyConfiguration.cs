@@ -13,7 +13,7 @@ namespace OrganizationService.Configurations
             builder
                 .HasMany(c => c.Staffs)
                 .WithOne(s => s.StaffCompany)
-                .HasForeignKey(s => s.CompanyId)
+                .HasForeignKey(s => s.StaffCompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

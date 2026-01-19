@@ -2,7 +2,7 @@
 
 namespace OrganizationService.Models
 {
-    public class UserToken : TenantEntity
+    public class UserToken : GenericEntity
     {
         public string RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryDate { get; set; }

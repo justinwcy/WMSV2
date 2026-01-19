@@ -19,7 +19,7 @@ namespace OrganizationService.Repositories
     public class StaffRepository(
         UserManager<Staff> userManager,
         SignInManager<Staff> signInManager,
-        ICompanyContext companyContext,
+        IUserContext companyContext,
         IPublishEndpoint publishEndpoint,
         OrganizationDbContext dbContext) : IStaffRepository
     {
@@ -102,8 +102,7 @@ namespace OrganizationService.Repositories
                     return RepositoryResult<Staff>.Failure(string.Join(", ", 
                         identityResult.Errors.Select(x => x.Description)));
                 }
-
-
+                
                 // publish event into outbox
                 var staffCreated = new StaffCreated() { Id = entity.Id };
                 await publishEndpoint.Publish(staffCreated);

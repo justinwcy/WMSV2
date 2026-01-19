@@ -2,7 +2,7 @@
 
 namespace OrganizationService.DTOs
 {
-    public class LoginDTO
+    public class StaffLoginDTO
     {
         [Required]
         public string Email { get; set; }

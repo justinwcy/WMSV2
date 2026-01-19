@@ -29,7 +29,7 @@ namespace OrganizationService.Service
             {
                 new Claim(JwtRegisteredClaimNames.Email, staff.Email),
                 new Claim("UserId", staff.Id.ToString()),
-                new Claim("CompanyId", staff.CompanyId.ToString()),
+                new Claim("CompanyId", staff.StaffCompanyId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Name, staff.UserName ?? ""),
             };
 

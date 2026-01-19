@@ -9,13 +9,13 @@ namespace WMSCommon.Repositories
 {
     public abstract class TenantRepository<T, TContext>(
         IDbContextFactory<TContext> dbContextFactory,
-        ICompanyContext companyContext)
+        IUserContext companyContext)
         : ITenantRepository<T>
         where T : class, ITenantEntity
         where TContext : DbContext
     {
         protected readonly IDbContextFactory<TContext> ContextFactory = dbContextFactory;
-        protected readonly ICompanyContext CompanyContext = companyContext;
+        protected readonly IUserContext CompanyContext = companyContext;
 
         public async Task<T?> GetByIdAsync(Guid id)
         {

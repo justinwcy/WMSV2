@@ -17,6 +17,7 @@ namespace OrganizationService.Repositories
         {
             await using var dbContext = await ContextFactory.CreateDbContextAsync();
             var existingCompany = await dbContext.Companies
+                .Include(c=>c.Staffs)
                 .FirstOrDefaultAsync(c => c.Id == entity.Id);
 
             if (existingCompany == null)

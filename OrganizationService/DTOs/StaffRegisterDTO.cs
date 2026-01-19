@@ -2,7 +2,7 @@
 
 namespace OrganizationService.DTOs
 {
-    public class RegisterDTO
+    public class StaffRegisterDTO
     {
         [EmailAddress]
         public string Email { get; set; }
@@ -15,5 +15,8 @@ namespace OrganizationService.DTOs
 
         [Required]
         public IEnumerable<string> Roles { get; set; }
+
+        [Required]
+        public Guid CompanyId { get; set; }
     }
 }

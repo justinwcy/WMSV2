@@ -1,6 +1,6 @@
 ﻿namespace OrganizationService.DTOs
 {
-    public class UpdateStaffDTO
+    public class StaffUpdateDTO
     {
         public string Email { get; set; }
         public string Username { get; set; }

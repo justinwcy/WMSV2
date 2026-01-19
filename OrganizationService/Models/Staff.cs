@@ -11,7 +11,7 @@ namespace OrganizationService.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public ICollection<UserToken> UserTokens { get; private set; }
-        public Company StaffCompany { get; set; }
+        public Company Company { get; set; }
         public Guid CompanyId { get; set; }
 
         public ICollection<StaffRole> UserRoles { get; set; } = new List<StaffRole>();
