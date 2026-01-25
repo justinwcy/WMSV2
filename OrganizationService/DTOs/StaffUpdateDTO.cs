@@ -7,6 +7,6 @@
         public string LastName { get; set; }
         public string Username { get; set; }
 
-        public IEnumerable<Guid> RoleIds { get; set; }
+        public IEnumerable<string> Roles { get; set; }
     }
 }

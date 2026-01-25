@@ -1,17 +1,41 @@
-﻿using OrganizationService.Models;
-using WMSCommon.Repositories;
+﻿using Microsoft.AspNetCore.Identity;
+
+using OrganizationService.Models;
+using OrganizationService.Results;
 using WMSCommon.Results;
 
 namespace OrganizationService.Repositories
 {
-    public interface IStaffRepository : ITenantRepository<Staff>
+    public interface IStaffRepository
     {
-        public Task<RepositoryResult<Staff>> Login(string email, string password);
-        public Task<RepositoryResult<Staff>> ChangePassword(string userId, string oldPassword, string newPassword);
-        public IReadOnlyList<StaffRole> GetAllRoles();
-        public Task<Staff?> GetUserByEmail(string email);
-        public Task<IReadOnlyList<string>> GetRoles(Staff staff);
-        public Task<RepositoryResult<Staff>> UpdateUserRoles(Guid id,
-            IEnumerable<Guid> roleIds);
+        public Task<UserResult> GetByIdAsync(Guid id);
+
+        public Task<IEnumerable<UserResult>> GetAsync(int pageSize, int pageNumber);
+
+        public Task<int> CountAsync();
+
+        public Task<UserResult> LoginAsync(
+            string email, 
+            string password);
+
+        public Task<UserResult> ChangePasswordAsync(
+            string userId, 
+            string oldPassword, 
+            string newPassword);
+
+        public Task<IReadOnlyList<IdentityRole<Guid>>> GetAllRolesAsync();
+
+        public Task<IReadOnlyList<string>> GetRolesAsync(Staff staff);
+
+        public Task<UserResult> RegisterAsync(
+            Staff staff, 
+            string password, 
+            IEnumerable<string> roles);
+
+        public Task<UserResult> UpdateAsync(
+            Staff staff, 
+            IEnumerable<string> roles);
+
+        public Task<bool> DeleteAsync(Guid id);
     }
 }

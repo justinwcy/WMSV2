@@ -13,10 +13,5 @@ namespace OrganizationService.Models
         public ICollection<UserToken> UserTokens { get; private set; }
         public Company Company { get; set; }
         public Guid CompanyId { get; set; }
-
-        public virtual ICollection<IdentityRole<Guid>> UserRoles { get; set; }
-
-        [NotMapped]
-        public string Password { get; set; }
     }
 }

@@ -1,6 +1,8 @@
-﻿using System.Linq.Expressions;
+﻿using System.ComponentModel.Design;
+using System.Linq.Expressions;
 
 using Microsoft.EntityFrameworkCore;
+
 using WMSCommon.Contexts;
 using WMSCommon.Entities;
 using WMSCommon.Results;
@@ -9,19 +11,20 @@ namespace WMSCommon.Repositories
 {
     public abstract class TenantRepository<T, TContext>(
         IDbContextFactory<TContext> dbContextFactory,
-        IUserContext companyContext)
+        IUserContext userContext)
         : ITenantRepository<T>
         where T : class, ITenantEntity
         where TContext : DbContext
     {
         protected readonly IDbContextFactory<TContext> ContextFactory = dbContextFactory;
-        protected readonly IUserContext CompanyContext = companyContext;
+        protected readonly IUserContext UserContext = userContext;
 
         public async Task<T?> GetByIdAsync(Guid id)
         {
             await using var dbContext = await ContextFactory.CreateDbContextAsync();
             return await dbContext.Set<T>()
                 .AsNoTracking()
+                .Where(e => e.CompanyId == userContext.CompanyId)
                 .FirstOrDefaultAsync(e => e.Id == id);
         }
 
@@ -34,7 +37,7 @@ namespace WMSCommon.Repositories
             await using var dbContext = await ContextFactory.CreateDbContextAsync();
             int skip = (Math.Max(1, pageNumber) - 1) * pageSize;
 
-            Guid companyId = CompanyContext.CompanyId;
+            Guid companyId = UserContext.CompanyId;
             IQueryable<T> query = dbContext.Set<T>()
                 .AsNoTracking()
                 .Where(e=> e.CompanyId == companyId);
@@ -66,7 +69,7 @@ namespace WMSCommon.Repositories
         {
             await using var dbContext = await ContextFactory.CreateDbContextAsync();
 
-            Guid companyId = CompanyContext.CompanyId;
+            Guid companyId = UserContext.CompanyId;
             int rowsAffected = await dbContext.Set<T>()
                 .Where(e => e.Id == id && e.CompanyId == companyId)
                 .ExecuteDeleteAsync();
@@ -77,7 +80,7 @@ namespace WMSCommon.Repositories
         public async Task<int> CountAsync()
         {
             await using var dbContext = await ContextFactory.CreateDbContextAsync();
-            Guid companyId = CompanyContext.CompanyId;
+            Guid companyId = UserContext.CompanyId;
             return await dbContext.Set<T>()
                 .Where(e => e.CompanyId == companyId)
                 .CountAsync();

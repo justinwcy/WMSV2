@@ -7,6 +7,7 @@ using OrganizationService.DTOs;
 using OrganizationService.Mappings;
 using OrganizationService.Models;
 using OrganizationService.Repositories;
+using OrganizationService.Results;
 using OrganizationService.Service;
 
 using WMSCommon.Constants;
@@ -24,48 +25,48 @@ namespace OrganizationService.Controllers
         [HttpGet("{id:guid}", Name = "GetStaffById")]
         public async Task<ActionResult<StaffReadDTO>> GetStaffById(Guid id)
         {
-            var staff = await staffRepository.GetByIdAsync(id);
-            if (staff == null)
+            var result = await staffRepository.GetByIdAsync(id);
+            if (!result.IsSuccess)
             {
                 return NotFound();
             }
 
-            return Ok(staff.ToReadDTO());
+            return Ok(result.User.ToReadDTO(result.Roles));
         }
 
         [HttpPost("Register")]
         public async Task<ActionResult<StaffReadDTO>> Register(StaffRegisterDTO staffRegisterDTO)
         {
             var staff = staffRegisterDTO.ToModel();
-            var result = await staffRepository.CreateAsync(staff);
+            var result = await staffRepository.RegisterAsync(
+                staff, 
+                staffRegisterDTO.Password, 
+                staffRegisterDTO.Roles);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Message);
             }
 
             return CreatedAtRoute(nameof(GetStaffById),
-                new { Id = staff.Id }, staff.ToReadDTO());
+                new { Id = result.User.Id }, result.User.ToReadDTO(result.Roles));
         }
 
         [HttpPost("Login")]
         public async Task<ActionResult<StaffReadDTO>> Login(StaffLoginDTO staffLoginDTO)
         {
-            var result = await staffRepository.Login(staffLoginDTO.Email, staffLoginDTO.Password);
+            var result = await staffRepository.LoginAsync(staffLoginDTO.Email, staffLoginDTO.Password);
             if (!result.IsSuccess)
             {
                 return BadRequest(result.Message);
             }
 
-            var staff = await staffRepository.GetUserByEmail(staffLoginDTO.Email);
+            var staff = result.User;
             var token = await tokenService.CreateToken(staff);
             var refreshToken = await tokenService.CreateRefreshToken(staff);
-
-            var roles = await staffRepository.GetRoles(staff);
-            var userReadDTO = staff.ToReadDTO();
-
             // Set the tokens as cookies
             SetTokenCookies(token, refreshToken);
 
+            var userReadDTO = staff.ToReadDTO(result.Roles);
             return Ok(userReadDTO);
         }
 
@@ -81,17 +82,17 @@ namespace OrganizationService.Controllers
                 return Unauthorized("Invalid refresh token");
             }
 
-            var staff = await staffRepository.GetByIdAsync(staffId);
-            if (staff == null)
+            var result = await staffRepository.GetByIdAsync(staffId);
+            if (result.User == null)
             {
                 return BadRequest("User not found");
             }
 
-            var token = await tokenService.CreateToken(staff);
-            var newRefreshToken = await tokenService.CreateRefreshToken(staff);
+            var token = await tokenService.CreateToken(result.User);
+            var newRefreshToken = await tokenService.CreateRefreshToken(result.User);
 
-            var roles = await staffRepository.GetRoles(staff);
-            var userReadDTO = staff.ToReadDTO();
+            var roles = await staffRepository.GetRolesAsync(result.User);
+            var userReadDTO = result.User.ToReadDTO(result.Roles);
 
             // Set the tokens as cookies
             SetTokenCookies(token, newRefreshToken);
@@ -100,9 +101,9 @@ namespace OrganizationService.Controllers
         }
 
         [HttpGet("Roles")]
-        public ActionResult<IEnumerable<string>> GetAllRoles()
+        public ActionResult<IEnumerable<IdentityRole<Guid>>> GetAllRoles()
         {
-            return Ok(staffRepository.GetAllRoles());
+            return Ok(staffRepository.GetAllRolesAsync());
         }
 
         [Authorize]
@@ -114,24 +115,17 @@ namespace OrganizationService.Controllers
             Staff staff = staffUpdateDTO.ToModel();
             staff.Id = id;
 
-            RepositoryResult<Staff> updateUserResult = await staffRepository.UpdateAsync(staff);
+            UserResult updateUserResult = await staffRepository.UpdateAsync(
+                staff, 
+                staffUpdateDTO.Roles);
             if (!updateUserResult.IsSuccess)
             {
                 return StatusCode(500, updateUserResult.Message);
             }
 
-            RepositoryResult<Staff> updateRoleResult = await staffRepository.UpdateUserRoles(
-                id, staffUpdateDTO.RoleIds);
-            if (!updateRoleResult.IsSuccess)
-            {
-                return StatusCode(500, updateRoleResult.Message);
-            }
-
             var token = await tokenService.CreateToken(staff);
             var refreshToken = await tokenService.CreateRefreshToken(staff);
-
-            var roles = await staffRepository.GetRoles(staff);
-            var userReadDTO = staff.ToReadDTO();
+            var userReadDTO = staff.ToReadDTO(updateUserResult.Roles);
 
             // Set the tokens as cookies
             SetTokenCookies(token, refreshToken);
@@ -145,7 +139,7 @@ namespace OrganizationService.Controllers
             string userId,
             StaffChangePasswordDTO staffChangePasswordDTO)
         {
-            var result = await staffRepository.ChangePassword(
+            var result = await staffRepository.ChangePasswordAsync(
                 userId,
                 staffChangePasswordDTO.OldPassword,
                 staffChangePasswordDTO.NewPassword);
@@ -164,18 +158,18 @@ namespace OrganizationService.Controllers
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
-            var staffs = await staffRepository.GetAsync(pageSize, pageNumber);
+            var results = await staffRepository.GetAsync(pageSize, pageNumber);
             int staffCount = await staffRepository.CountAsync();
-            var userReadDTOs = new List<StaffReadDTO>();
-            foreach (var staff in staffs)
+            var staffReadDTOs = new List<StaffReadDTO>();
+            foreach (var userResult in results)
             {
-                var userReadDTO = staff.ToReadDTO();
-                userReadDTOs.Add(userReadDTO);
+                var staffReadDTO = userResult.User.ToReadDTO(userResult.Roles);
+                staffReadDTOs.Add(staffReadDTO);
             }
 
             var result = new PaginationResult<StaffReadDTO>
             {
-                Items = userReadDTOs,
+                Items = staffReadDTOs,
                 PageNumber = pageNumber,
                 PageSize = pageSize,
                 TotalCount = staffCount
@@ -214,7 +208,8 @@ namespace OrganizationService.Controllers
                 Secure = true,
                 SameSite = SameSiteMode.Lax,
                 Path = "/",
-                Domain = ".wms.com",
+                //Domain = ".wms.com",
+                Domain = "localhost",
                 Expires = DateTime.UtcNow.AddSeconds(Token.AccessTokenExpiryTime)
             };
 
@@ -224,7 +219,8 @@ namespace OrganizationService.Controllers
                 Secure = true,
                 SameSite = SameSiteMode.Lax,
                 Path = "/",
-                Domain = ".wms.com",
+                //Domain = ".wms.com",
+                Domain = "localhost",
                 Expires = DateTime.UtcNow.AddSeconds(Token.RefreshTokenExpiryTime)
             };
 

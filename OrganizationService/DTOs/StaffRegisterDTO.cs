@@ -20,7 +20,7 @@ namespace OrganizationService.DTOs
         public string Password { get; set; }
 
         [Required]
-        public IEnumerable<Guid> RoleIds { get; set; }
+        public IEnumerable<string> Roles { get; set; }
 
         [Required]
         public Guid CompanyId { get; set; }

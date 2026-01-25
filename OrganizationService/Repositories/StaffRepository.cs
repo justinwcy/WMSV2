@@ -1,14 +1,13 @@
 ﻿using System.Data;
-using System.Linq.Expressions;
 
 using MassTransit;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-using OrganizationService.Constants;
 using OrganizationService.DbContexts;
 using OrganizationService.Models;
+using OrganizationService.Results;
 
 using WMSCommon.Contexts;
 using WMSCommon.Contracts;
@@ -20,126 +19,59 @@ namespace OrganizationService.Repositories
         UserManager<Staff> userManager,
         RoleManager<IdentityRole<Guid>> roleManager,
         SignInManager<Staff> signInManager,
-        IUserContext companyContext,
+        IUserContext userContext,
         IPublishEndpoint publishEndpoint,
-        OrganizationDbContext dbContext) : IStaffRepository
+        OrganizationDbContext dbContext,
+        IDbContextFactory<OrganizationDbContext> dbContextFactory) : 
+        IStaffRepository
     {
-        private Guid CompanyId => companyContext.CompanyId;
+        private Guid CompanyId => userContext.CompanyId;
 
-        public async Task<Staff?> GetByIdAsync(Guid id)
+        public async Task<UserResult> GetByIdAsync(Guid id)
         {
-            Staff? staff = await userManager.Users
+            Staff? staff = await userManager.FindByIdAsync(id.ToString());
+            if (staff != null)
+            {
+                IEnumerable<string> roles = await userManager.GetRolesAsync(staff);
+                return UserResult.Success(staff, roles);
+            }
+
+            return UserResult.Failure("User not found");
+        }
+
+        public async Task<IEnumerable<UserResult>> GetAsync(int pageSize, int pageNumber)
+        {
+            var staffs = await userManager.Users
                 .Where(s=>s.CompanyId == CompanyId)
-                .Include(s => s.UserRoles)
-                .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(s=>s.Id == id);
-            return staff;
-        }
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
-        public async Task<IReadOnlyList<Staff>> GetAsync(
-            int pageNumber, 
-            int pageSize, 
-            Expression<Func<Staff, object>>? orderBy = null, 
-            bool descending = false)
-        {
-            int skip = (Math.Max(1, pageNumber) - 1) * pageSize;
-
-            IQueryable<Staff> query = userManager.Users
-                .AsNoTracking()
-                .Where(s => s.CompanyId == CompanyId)
-                .Include(s => s.UserRoles)
-                .ThenInclude(ur => ur.Role);
-
-            if (orderBy != null)
+            var staffsWithRoles = new List<UserResult>();
+            foreach (Staff staff in staffs)
             {
-                query = descending ? query.OrderByDescending(orderBy) : query.OrderBy(orderBy);
+                IEnumerable<string> roles = await userManager.GetRolesAsync(staff);
+                staffsWithRoles.Add(UserResult.Success(staff, roles));
             }
-            else
-            {
-                query = query.OrderBy(s => s.Email);
-            }
-
-            return await query.Skip(skip).Take(pageSize).ToListAsync();
-        }
-
-        public async Task<RepositoryResult<Staff>> CreateAsync(Staff entity)
-        {
-            await using var transaction = await dbContext.Database.BeginTransactionAsync();
-            try
-            {
-                var staffFound = await userManager.FindByIdAsync(entity.Id.ToString());
-                if (staffFound != null)
-                {
-                    return RepositoryResult<Staff>.Failure("User already exists");
-                }
-
-                IEnumerable<Guid> roleIds = entity.UserRoles.Select(r => r.RoleId);
-                if (!roleIds.Any())
-                {
-                    return RepositoryResult<Staff>.Failure("Staff must have roles");
-                }
-
-                var identityResult = await userManager.CreateAsync(entity, entity.Password);
-                if (!identityResult.Succeeded)
-                {
-                    return RepositoryResult<Staff>.Failure(string.Join(", ", 
-                        identityResult.Errors.Select(x => x.Description)));
-                }
-
-                // publish event into outbox
-                var staffCreated = new StaffCreated() { Id = entity.Id };
-                await publishEndpoint.Publish(staffCreated);
-
-                // commit the whole changes in 1 transaction
-                await dbContext.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                return RepositoryResult<Staff>.Success(entity);
-            }
-            catch (Exception exception)
-            {
-                await transaction.RollbackAsync();
-                return RepositoryResult<Staff>.Failure(exception.InnerException.Message);
-            }
-        }
-
-        public async Task<RepositoryResult<Staff>> UpdateAsync(Staff entity)
-        {
-            var staff = await userManager.FindByIdAsync(entity.Id.ToString());
-            if (staff == null)
-            {
-                return RepositoryResult<Staff>.Failure("User not found");
-            }
-
-            staff.Email = entity.Email;
-            staff.UserName = entity.UserName;
-            staff.FirstName = entity.FirstName;
-            staff.LastName = entity.LastName;
-
-            var result = await userManager.UpdateAsync(staff);
-            if (!result.Succeeded)
-            {
-                RepositoryResult<Staff> repositoryResult = RepositoryResult<Staff>.Failure("User not found");
-                repositoryResult.Message = string.Join(", ", result.Errors.Select(x => x.Description).ToList());
-                return repositoryResult;
-            }
-
-            return RepositoryResult<Staff>.Success(entity);
+            return staffsWithRoles;
         }
 
         public async Task<int> CountAsync()
         {
-            return await userManager.Users
-                .Where(u => u.CompanyId == CompanyId)
+            var count = await userManager.Users
+                .Where(s=>s.CompanyId == CompanyId)
                 .CountAsync();
+            return count;
         }
 
-        public async Task<RepositoryResult<Staff>> Login(string email, string password)
+        public async Task<UserResult> LoginAsync(
+            string email, 
+            string password)
         {
             Staff? staffFound = await userManager.FindByEmailAsync(email);
             if (staffFound == null)
             {
-                return RepositoryResult<Staff>.Failure("Login failed");
+                return UserResult.Failure("Login failed");
             }
 
             var signInResult = await signInManager.CheckPasswordSignInAsync(
@@ -148,21 +80,25 @@ namespace OrganizationService.Repositories
                 false);
             if (!signInResult.Succeeded)
             {
-                return RepositoryResult<Staff>.Failure("Login failed");
+                return UserResult.Failure("Login failed");
             }
 
-            RepositoryResult<Staff> result = RepositoryResult<Staff>.Success(staffFound);
+            IEnumerable<string> staffRoles = await userManager.GetRolesAsync(staffFound);
+            UserResult result = UserResult.Success(staffFound, staffRoles);
             result.Message = "Login success";
 
             return result;
         }
 
-        public async Task<RepositoryResult<Staff>> ChangePassword(string userId, string oldPassword, string newPassword)
+        public async Task<UserResult> ChangePasswordAsync(
+            string userId,
+            string oldPassword,
+            string newPassword)
         {
             Staff? staffFound = await userManager.FindByIdAsync(userId);
             if (staffFound == null)
             {
-                return RepositoryResult<Staff>.Failure("User not found");
+                return UserResult.Failure("User not found");
             }
 
             var result = await userManager.ChangePasswordAsync(
@@ -174,61 +110,90 @@ namespace OrganizationService.Repositories
             if (result.Succeeded)
             {
                 await userManager.UpdateSecurityStampAsync(staffFound);
-                RepositoryResult<Staff> repositoryResult = RepositoryResult<Staff>.Success(staffFound);
-                repositoryResult.Message = "Password Changed";
+                IEnumerable<string> roles = await userManager.GetRolesAsync(staffFound);
+                UserResult successResult = UserResult.Success(staffFound, roles);
+                successResult.Message = "Password Changed";
 
-                return repositoryResult;
+                return successResult;
             }
 
-            return RepositoryResult<Staff>.Failure(string.Join(", ", result.Errors.Select(x => x.Description)));
+            return UserResult.Failure(string.Join(", ", result.Errors.Select(x => x.Description)));
         }
 
-        public IReadOnlyList<StaffRole> GetAllRoles()
+        public async Task<IReadOnlyList<IdentityRole<Guid>>> GetAllRolesAsync()
         {
-            var allRoles = roleManager.Roles.Cast<StaffRole>().ToList();
+            var allRoles = await roleManager.Roles.ToListAsync();
             return allRoles;
         }
 
-        public async Task<Staff?> GetUserByEmail(string email)
-        {
-            Staff? staff = await userManager.FindByEmailAsync(email);
-            return staff;
-        }
-
-        public async Task<IReadOnlyList<string>> GetRoles(Staff staff)
+        public async Task<IReadOnlyList<string>> GetRolesAsync(Staff staff)
         {
             var roles = await userManager.GetRolesAsync(staff);
             return roles.ToList();
         }
 
-        public async Task<RepositoryResult<Staff>> UpdateUserRoles(
-            Guid id, 
-            IEnumerable<Guid> roleIds)
+        public async Task<UserResult> RegisterAsync(
+            Staff staff, 
+            string password, 
+            IEnumerable<string> roles)
         {
-            var appUser = await userManager.FindByIdAsync(id.ToString());
-            if (appUser == null)
+            var result = await userManager.CreateAsync(staff, password);
+            if (!result.Succeeded)
             {
-                return RepositoryResult<Staff>.Failure("User not found");
+                UserResult failureResult = UserResult.Failure("User creation failed");
+                failureResult.Message = string.Join(", ", result.Errors.Select(x => x.Description).ToList());
+                return failureResult;
             }
-
-            var currentUserRoles = await userManager.GetRolesAsync(appUser);
-            await userManager.RemoveFromRolesAsync(appUser, currentUserRoles);
-
-            foreach (Guid roleId in roleIds)
+            foreach (var roleName in roles)
             {
-                var role = await roleManager.FindByIdAsync(roleId.ToString());
-                if (role == null)
+                var role = await roleManager.FindByNameAsync(roleName);
+                if (role != null)
                 {
-                    return RepositoryResult<Staff>.Failure($"Role with id {roleId} not found");
+                    await userManager.AddToRoleAsync(staff, role.Name);
                 }
-                await userManager.AddToRoleAsync(appUser, role.Name);
             }
-
-            RepositoryResult<Staff> result =  RepositoryResult<Staff>.Success(appUser);
-            result.Message = $"User {appUser.UserName} role updated";
-            return result;
+            UserResult successResult = UserResult.Success(staff, roles);
+            successResult.Message = "User created successfully";
+            return successResult;
         }
 
+
+        public async Task<UserResult> UpdateAsync(
+            Staff entity,
+            IEnumerable<string> roles)
+        {
+            var staff = await userManager.FindByIdAsync(entity.Id.ToString());
+            if (staff == null)
+            {
+                return UserResult.Failure("User not found");
+            }
+
+            staff.Email = entity.Email;
+            staff.UserName = entity.UserName;
+            staff.FirstName = entity.FirstName;
+            staff.LastName = entity.LastName;
+
+            var result = await userManager.UpdateAsync(staff);
+            if (!result.Succeeded)
+            {
+                string errorMessage = string.Join(", ", result.Errors.Select(x => x.Description));
+                UserResult failureResult = UserResult.Failure(errorMessage);
+                return failureResult;
+            }
+
+            var currentUserRoles = await userManager.GetRolesAsync(staff);
+            await userManager.RemoveFromRolesAsync(staff, currentUserRoles);
+            foreach (var roleName in roles)
+            {
+                var role = await roleManager.FindByNameAsync(roleName);
+                if (role != null)
+                {
+                    await userManager.AddToRoleAsync(staff, role.Name);
+                }
+            }
+
+            return UserResult.Success(staff, roles);
+        }
         public async Task<bool> DeleteAsync(Guid id)
         {
             var staffFound = await userManager.Users

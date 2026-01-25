@@ -8,21 +8,13 @@ namespace OrganizationService.Mappings
     {
         public static Staff ToModel(this StaffRegisterDTO staffRegisterDTO)
         {
-            ICollection<StaffRole> roles = staffRegisterDTO.RoleIds
-                .Select(roleId => new StaffRole
-                {
-                    RoleId = roleId
-                }).ToList();
-
             return new Staff()
             {
                 UserName = staffRegisterDTO.Username,
                 FirstName = staffRegisterDTO.FirstName,
                 LastName = staffRegisterDTO.LastName,
                 Email = staffRegisterDTO.Email,
-                Password = staffRegisterDTO.Password,
                 CompanyId = staffRegisterDTO.CompanyId,
-                UserRoles = roles,
             };
         }
 
@@ -37,16 +29,17 @@ namespace OrganizationService.Mappings
             };
         }
 
-        public static StaffReadDTO ToReadDTO(this Staff staff)
+        public static StaffReadDTO ToReadDTO(this Staff staff, IEnumerable<string> roles)
         {
             return new StaffReadDTO()
             {
                 Id = staff.Id,
                 UserName = staff.UserName,
                 Email = staff.Email,
-                Roles = staff.UserRoles.Select(r=>r.Role.Name),
+                Roles = roles,
                 FirstName = staff.FirstName,
                 LastName = staff.LastName,
+                CompanyId = staff.CompanyId,
             };
         }
     }
