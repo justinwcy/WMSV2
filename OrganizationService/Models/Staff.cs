@@ -14,7 +14,7 @@ namespace OrganizationService.Models
         public Company Company { get; set; }
         public Guid CompanyId { get; set; }
 
-        public ICollection<StaffRole> UserRoles { get; set; } = new List<StaffRole>();
+        public virtual ICollection<IdentityRole<Guid>> UserRoles { get; set; }
 
         [NotMapped]
         public string Password { get; set; }

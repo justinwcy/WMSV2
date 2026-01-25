@@ -8,13 +8,19 @@ namespace OrganizationService.DTOs
         public string Email { get; set; }
 
         [Required]
+        public string FirstName { get; set; }
+
+        [Required]
+        public string LastName { get; set; }
+
+        [Required]
         public string Username { get; set; }
 
         [Required]
         public string Password { get; set; }
 
         [Required]
-        public IEnumerable<string> Roles { get; set; }
+        public IEnumerable<Guid> RoleIds { get; set; }
 
         [Required]
         public Guid CompanyId { get; set; }

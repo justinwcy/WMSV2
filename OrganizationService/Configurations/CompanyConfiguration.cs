@@ -9,11 +9,11 @@ namespace OrganizationService.Configurations
         public void Configure(EntityTypeBuilder<Company> builder)
         {
             builder.HasKey(c => c.Id);
-
+                
             builder
                 .HasMany(c => c.Staffs)
-                .WithOne(s => s.StaffCompany)
-                .HasForeignKey(s => s.StaffCompanyId)
+                .WithOne(s => s.Company)
+                .HasForeignKey(s => s.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

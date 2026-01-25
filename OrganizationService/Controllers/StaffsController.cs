@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 using OrganizationService.Constants;
@@ -20,8 +21,8 @@ namespace OrganizationService.Controllers
         IStaffRepository staffRepository) : ControllerBase
     {
         [Authorize]
-        [HttpGet("{id:guid}", Name = "GetById")]
-        public async Task<ActionResult<StaffReadDTO>> GetById(Guid id)
+        [HttpGet("{id:guid}", Name = "GetStaffById")]
+        public async Task<ActionResult<StaffReadDTO>> GetStaffById(Guid id)
         {
             var staff = await staffRepository.GetByIdAsync(id);
             if (staff == null)
@@ -29,7 +30,6 @@ namespace OrganizationService.Controllers
                 return NotFound();
             }
 
-            var roles = await staffRepository.GetRoles(staff);
             return Ok(staff.ToReadDTO());
         }
 
@@ -42,9 +42,9 @@ namespace OrganizationService.Controllers
             {
                 return StatusCode(500, result.Message);
             }
-            
-            return CreatedAtRoute(nameof(GetById),
-                new { userId = staff.Id }, staff.ToReadDTO());
+
+            return CreatedAtRoute(nameof(GetStaffById),
+                new { Id = staff.Id }, staff.ToReadDTO());
         }
 
         [HttpPost("Login")]
@@ -121,7 +121,7 @@ namespace OrganizationService.Controllers
             }
 
             RepositoryResult<Staff> updateRoleResult = await staffRepository.UpdateUserRoles(
-                id, staffUpdateDTO.Roles);
+                id, staffUpdateDTO.RoleIds);
             if (!updateRoleResult.IsSuccess)
             {
                 return StatusCode(500, updateRoleResult.Message);

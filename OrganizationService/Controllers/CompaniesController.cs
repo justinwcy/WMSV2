@@ -17,8 +17,8 @@ namespace OrganizationService.Controllers
         ICompanyRepository companyRepository) : ControllerBase
     {
         [Authorize]
-        [HttpGet("{id:guid}", Name = "GetById")]
-        public async Task<ActionResult<StaffReadDTO>> GetById(Guid id)
+        [HttpGet("{id:guid}", Name = "GetCompanyById")]
+        public async Task<ActionResult<CompanyReadDTO>> GetCompanyById(Guid id)
         {
             var company = await companyRepository.GetByIdAsync(id);
             if (company == null)
@@ -29,6 +29,7 @@ namespace OrganizationService.Controllers
             return Ok(company.ToReadDTO());
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<CompanyReadDTO>> Create(CompanyCreateDTO companyCreateDTO)
         {
@@ -39,7 +40,7 @@ namespace OrganizationService.Controllers
                 return StatusCode(500, result.Message);
             }
 
-            return CreatedAtRoute(nameof(GetById),
+            return CreatedAtRoute(nameof(GetCompanyById),
                 new { userId = company.Id }, company.ToReadDTO());
         }
 
@@ -62,7 +63,7 @@ namespace OrganizationService.Controllers
             return Ok(companyReadDTO);
         }
 
-        [Authorize(Roles = nameof(Role.Admin))]
+        [Authorize(Roles = nameof(Role.MasterControl))]
         [HttpGet]
         public async Task<ActionResult<PaginationResult<CompanyReadDTO>>> Get(
             [FromQuery] int pageNumber = 1,

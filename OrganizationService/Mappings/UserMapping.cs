@@ -1,28 +1,28 @@
-﻿using OrganizationService.DTOs;
+﻿using Microsoft.AspNetCore.Identity;
+using OrganizationService.DTOs;
 using OrganizationService.Models;
 
 namespace OrganizationService.Mappings
 {
     public static class UserMapping
     {
-        public static Staff ToModel(this StaffReadDTO userReadDTO)
-        {
-            return new Staff()
-            {
-                Id = userReadDTO.Id,
-                UserName = userReadDTO.UserName,
-                Email = userReadDTO.Email
-            };
-        }
-
         public static Staff ToModel(this StaffRegisterDTO staffRegisterDTO)
         {
+            ICollection<StaffRole> roles = staffRegisterDTO.RoleIds
+                .Select(roleId => new StaffRole
+                {
+                    RoleId = roleId
+                }).ToList();
+
             return new Staff()
             {
                 UserName = staffRegisterDTO.Username,
+                FirstName = staffRegisterDTO.FirstName,
+                LastName = staffRegisterDTO.LastName,
                 Email = staffRegisterDTO.Email,
                 Password = staffRegisterDTO.Password,
-                CompanyId = staffRegisterDTO.CompanyId
+                CompanyId = staffRegisterDTO.CompanyId,
+                UserRoles = roles,
             };
         }
 
@@ -32,6 +32,8 @@ namespace OrganizationService.Mappings
             {
                 UserName = staffUpdateDTO.Username,
                 Email = staffUpdateDTO.Email,
+                FirstName = staffUpdateDTO.FirstName,
+                LastName = staffUpdateDTO.LastName,
             };
         }
 
@@ -43,6 +45,8 @@ namespace OrganizationService.Mappings
                 UserName = staff.UserName,
                 Email = staff.Email,
                 Roles = staff.UserRoles.Select(r=>r.Role.Name),
+                FirstName = staff.FirstName,
+                LastName = staff.LastName,
             };
         }
     }

@@ -4,6 +4,7 @@ namespace OrganizationService.Models
 {
     public class StaffRole : IdentityUserRole<Guid>
     {
-        public IdentityRole<Guid> Role { get; set; } = null!;
+        public virtual Staff Staff { get; set; }
+        public virtual IdentityRole<Guid> Role { get; set; }
     }
 }

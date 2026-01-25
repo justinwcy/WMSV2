@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 using OrganizationService.Constants;
 using OrganizationService.Models;
+using Warehouse.Entities;
 
 namespace OrganizationService.DbContexts
 {
@@ -14,12 +15,12 @@ namespace OrganizationService.DbContexts
     {
         public DbSet<Company> Companies { get; set; }
         public DbSet<UserToken> UserTokens { get; set; }
+        public DbSet<AuditEntry> AuditEntries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(OrganizationDbContext).Assembly);
-
             SeedRoles(modelBuilder);
             SeedCompany(modelBuilder);
 
@@ -30,21 +31,32 @@ namespace OrganizationService.DbContexts
         {
             string[] allRoles = Enum.GetNames<Role>();
 
-            int counter = 0;
+            int counter = 1;
             List<IdentityRole<Guid>> identityRoles = new List<IdentityRole<Guid>>();
             foreach (string roleName in allRoles)
             {
-                string guidString = $"00000000-0000-0000-0000-{counter:D12}";
+                Guid roleId = new Guid($"00000000-0000-0000-0000-{counter:D12}");
                 identityRoles.Add(new IdentityRole<Guid>
                 {
-                    Id = new Guid(guidString),
+                    Id = roleId,
                     Name = roleName,
-                    NormalizedName = roleName.ToUpperInvariant()
+                    NormalizedName = roleName.ToUpperInvariant(),
+                    ConcurrencyStamp = roleId.ToString()
                 });
+                counter++;
             }
             
             modelBuilder.Entity<IdentityRole<Guid>>().HasData(identityRoles);
         }
+
+        private static readonly List<IdentityRole<Guid>> SeededRoles = Enum.GetNames<Role>()
+            .Select((name, index) => new IdentityRole<Guid>
+            {
+                // We use a hardcoded format so it's 100% static
+                Id = new Guid($"00000000-0000-0000-0000-{index + 1:D12}"),
+                Name = name,
+                NormalizedName = name.ToUpperInvariant()
+            }).ToList();
 
         private void SeedCompany(ModelBuilder modelBuilder)
         {

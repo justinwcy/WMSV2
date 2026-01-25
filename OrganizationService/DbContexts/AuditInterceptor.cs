@@ -14,7 +14,7 @@ namespace OrganizationService.DbContexts
             var auditEntries = OnBeforeSaveChanges(eventData.Context);
             if (auditEntries.Any())
             {
-                eventData.Context.AddRange(auditEntries);
+                eventData.Context.Set<AuditEntry>().AddRange(auditEntries);
             }
 
             return base.SavingChangesAsync(eventData, result, cancellationToken);
@@ -48,6 +48,12 @@ namespace OrganizationService.DbContexts
 
                     if (property.Metadata.IsPrimaryKey())
                     {
+                        // If it's a new record, ensure the ID is generated now so we can audit it
+                        if (property.Metadata.ClrType == typeof(Guid) &&
+                            (Guid)property.CurrentValue == Guid.Empty)
+                        {
+                            property.CurrentValue = Guid.NewGuid();
+                        }
                         auditEntry.PrimaryKey = property.CurrentValue?.ToString();
                         continue;
                     }

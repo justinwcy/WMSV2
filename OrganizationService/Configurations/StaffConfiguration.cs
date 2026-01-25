@@ -17,14 +17,14 @@ namespace OrganizationService.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder
-                .HasOne(s => s.StaffCompany)
+                .HasOne(s => s.Company)
                 .WithMany(c => c.Staffs)
-                .HasForeignKey(s => s.StaffCompanyId)
+                .HasForeignKey(s => s.CompanyId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(s => new
             {
-                CompanyId = s.StaffCompanyId,
+                CompanyId = s.CompanyId,
                 s.UserName,
                 s.Email,
                 s.FirstName,

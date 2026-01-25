@@ -18,7 +18,7 @@ namespace OrganizationService.Configurations
 
             builder.HasIndex(s => new
             {
-                CompanyId = s.CompanyId, UserId = s.StaffId,
+                UserId = s.StaffId,
             });
         }
     }
