@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-
+using OrganizationService.Constants;
 using WMSCommon.Contexts;
 
 namespace OrganizationService.Contexts
@@ -10,7 +10,7 @@ namespace OrganizationService.Contexts
         {
             get
             {
-                var claim = httpContextAccessor.HttpContext?.User.FindFirstValue("CompanyId");
+                var claim = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimKey.CompanyIdKey);
 
                 if (Guid.TryParse(claim, out var companyId))
                 {
@@ -25,7 +25,7 @@ namespace OrganizationService.Contexts
         {
             get
             {
-                var claim = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var claim = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimKey.UserIdKey);
 
                 if (Guid.TryParse(claim, out var companyId))
                 {

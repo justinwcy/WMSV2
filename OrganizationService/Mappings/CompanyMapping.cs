@@ -36,7 +36,7 @@ namespace OrganizationService.Mappings
             {
                 Id = company.Id, 
                 Name = company.Name,
-                Staffs = company.Staffs.Select(s=>s.ToReadDTO()),
+                Staffs = new List<StaffReadDTO>()
             };
         }
     }

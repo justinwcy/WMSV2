@@ -6,7 +6,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
+using OrganizationService.Constants;
 using OrganizationService.DbContexts;
 using OrganizationService.Models;
 
@@ -28,8 +28,8 @@ namespace OrganizationService.Service
             var claims = new List<Claim>()
             {
                 new Claim(JwtRegisteredClaimNames.Email, staff.Email),
-                new Claim("UserId", staff.Id.ToString()),
-                new Claim("CompanyId", staff.CompanyId.ToString()),
+                new Claim(ClaimKey.UserIdKey, staff.Id.ToString()),
+                new Claim(ClaimKey.CompanyIdKey, staff.CompanyId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Name, staff.UserName ?? ""),
             };
 

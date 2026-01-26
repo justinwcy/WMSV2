@@ -91,7 +91,6 @@ namespace OrganizationService.Controllers
             var token = await tokenService.CreateToken(result.User);
             var newRefreshToken = await tokenService.CreateRefreshToken(result.User);
 
-            var roles = await staffRepository.GetRolesAsync(result.User);
             var userReadDTO = result.User.ToReadDTO(result.Roles);
 
             // Set the tokens as cookies
@@ -101,9 +100,9 @@ namespace OrganizationService.Controllers
         }
 
         [HttpGet("Roles")]
-        public ActionResult<IEnumerable<IdentityRole<Guid>>> GetAllRoles()
+        public async Task<ActionResult<IEnumerable<IdentityRole<Guid>>>> GetAllRoles()
         {
-            return Ok(staffRepository.GetAllRolesAsync());
+            return Ok(await staffRepository.GetAllRolesAsync());
         }
 
         [Authorize]

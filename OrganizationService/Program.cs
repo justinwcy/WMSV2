@@ -80,6 +80,7 @@ builder.Services.AddControllers();
 // Add services to the container.
 builder.Services.AddScoped<AuditInterceptor>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IUserContext, UserContext>();

@@ -14,7 +14,8 @@ namespace OrganizationService.Results
             new() 
             {
                 IsSuccess = true, 
-                User = staff
+                User = staff,
+                Roles = roles,
             };
         public static UserResult Failure(string message) => 
             new()

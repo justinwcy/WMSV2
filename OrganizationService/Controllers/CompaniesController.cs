@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.EntityFrameworkCore;
 using OrganizationService.Constants;
 using OrganizationService.DTOs;
 using OrganizationService.Mappings;
 using OrganizationService.Models;
 using OrganizationService.Repositories;
-
+using OrganizationService.Service;
 using WMSCommon.Results;
 
 namespace OrganizationService.Controllers
@@ -14,19 +14,23 @@ namespace OrganizationService.Controllers
     [ApiController]
     [Route("api/v1/OrganizationService/[controller]")]
     public class CompaniesController(
-        ICompanyRepository companyRepository) : ControllerBase
+        ICompanyRepository companyRepository,
+        ICompanyService companyService) : ControllerBase
     {
         [Authorize]
         [HttpGet("{id:guid}", Name = "GetCompanyById")]
         public async Task<ActionResult<CompanyReadDTO>> GetCompanyById(Guid id)
         {
-            var company = await companyRepository.GetByIdAsync(id);
+            var company = await companyRepository.GetByIdAsync(
+                id,
+                include: q => q.Include(c => c.Staffs));
             if (company == null)
             {
                 return NotFound();
             }
 
-            return Ok(company.ToReadDTO());
+            CompanyReadDTO companyReadDTO = await companyService.GetCompanyWithUserAndRoles(company);
+            return Ok(companyReadDTO);
         }
 
         [Authorize]
@@ -41,7 +45,7 @@ namespace OrganizationService.Controllers
             }
 
             return CreatedAtRoute(nameof(GetCompanyById),
-                new { userId = company.Id }, company.ToReadDTO());
+                new { Id = company.Id }, company.ToReadDTO());
         }
 
         [Authorize]
@@ -59,7 +63,7 @@ namespace OrganizationService.Controllers
                 return StatusCode(500, updateCompanyResult.Message);
             }
 
-            CompanyReadDTO companyReadDTO = updateCompanyResult.Data.ToReadDTO();
+            CompanyReadDTO companyReadDTO = await companyService.GetCompanyWithUserAndRoles(updateCompanyResult.Data);
             return Ok(companyReadDTO);
         }
 
@@ -69,15 +73,17 @@ namespace OrganizationService.Controllers
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
-            var companies = await companyRepository.GetAsync(pageSize, pageNumber);
+            var companies = await companyRepository.GetAsync(
+                pageNumber, 
+                pageSize,
+                orderBy: c => c.Name,
+                include: q => q.Include(c => c.Staffs)
+                );
             int companyCount = await companyRepository.CountAsync();
-            var companyReadDTOs = new List<CompanyReadDTO>();
-            foreach (var staff in companies)
-            {
-                var userReadDTO = staff.ToReadDTO();
-                companyReadDTOs.Add(userReadDTO);
-            }
 
+            IEnumerable<CompanyReadDTO> companyReadDTOs = await companyService
+                .GetCompanyWithUserAndRoles(companies);
+            
             var result = new PaginationResult<CompanyReadDTO>
             {
                 Items = companyReadDTOs,

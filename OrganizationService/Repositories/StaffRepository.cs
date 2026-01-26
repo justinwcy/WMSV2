@@ -5,13 +5,13 @@ using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+using OrganizationService.Contexts;
 using OrganizationService.DbContexts;
 using OrganizationService.Models;
 using OrganizationService.Results;
 
 using WMSCommon.Contexts;
 using WMSCommon.Contracts;
-using WMSCommon.Results;
 
 namespace OrganizationService.Repositories
 {
@@ -137,24 +137,41 @@ namespace OrganizationService.Repositories
             string password, 
             IEnumerable<string> roles)
         {
-            var result = await userManager.CreateAsync(staff, password);
-            if (!result.Succeeded)
+            await using var transaction = await dbContext.Database.BeginTransactionAsync();
+            try
             {
-                UserResult failureResult = UserResult.Failure("User creation failed");
-                failureResult.Message = string.Join(", ", result.Errors.Select(x => x.Description).ToList());
-                return failureResult;
-            }
-            foreach (var roleName in roles)
-            {
-                var role = await roleManager.FindByNameAsync(roleName);
-                if (role != null)
+                var result = await userManager.CreateAsync(staff, password);
+                if (!result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(staff, role.Name);
+                    UserResult failureResult = UserResult.Failure("User creation failed");
+                    failureResult.Message = string.Join(", ", result.Errors.Select(x => x.Description).ToList());
+                    return failureResult;
                 }
+
+                foreach (var roleName in roles)
+                {
+                    var role = await roleManager.FindByNameAsync(roleName);
+                    if (role != null)
+                    {
+                        await userManager.AddToRoleAsync(staff, role.Name);
+                    }
+                }
+
+                UserResult successResult = UserResult.Success(staff, roles);
+                successResult.Message = "User created successfully";
+
+                var staffCreated = new StaffCreated() { Id = staff.Id };
+                await publishEndpoint.Publish(staffCreated);
+
+                await transaction.CommitAsync();
+                return successResult;
+
             }
-            UserResult successResult = UserResult.Success(staff, roles);
-            successResult.Message = "User created successfully";
-            return successResult;
+            catch (Exception exception)
+            {
+                await transaction.RollbackAsync();
+                return UserResult.Failure(exception.Message);
+            }
         }
 
 

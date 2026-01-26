@@ -12,7 +12,7 @@ using OrganizationService.DbContexts;
 namespace OrganizationService.Migrations
 {
     [DbContext(typeof(OrganizationDbContext))]
-    [Migration("20260125083035_Draft1")]
+    [Migration("20260126150845_Draft1")]
     partial class Draft1
     {
         /// <inheritdoc />
@@ -213,17 +213,12 @@ namespace OrganizationService.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<Guid?>("StaffId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex")
                         .HasFilter("[NormalizedName] IS NOT NULL");
-
-                    b.HasIndex("StaffId");
 
                     b.ToTable("AspNetRoles", (string)null);
 
@@ -590,13 +585,6 @@ namespace OrganizationService.Migrations
                         .HasPrincipalKey("MessageId", "ConsumerId");
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
-                {
-                    b.HasOne("OrganizationService.Models.Staff", null)
-                        .WithMany("UserRoles")
-                        .HasForeignKey("StaffId");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -677,8 +665,6 @@ namespace OrganizationService.Migrations
 
             modelBuilder.Entity("OrganizationService.Models.Staff", b =>
                 {
-                    b.Navigation("UserRoles");
-
                     b.Navigation("UserTokens");
                 });
 #pragma warning restore 612, 618

@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using WMSCommon.Entities;
 using WMSCommon.Results;
 
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+
 namespace WMSCommon.Repositories
 {
     public abstract class GenericRepository<T, TContext>(
@@ -15,24 +17,35 @@ namespace WMSCommon.Repositories
     {
         protected readonly IDbContextFactory<TContext> ContextFactory = dbContextFactory;
 
-        public async Task<T?> GetByIdAsync(Guid id)
+        public async Task<T?> GetByIdAsync(
+            Guid id, 
+            Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
             await using var dbContext = await ContextFactory.CreateDbContextAsync();
-            return await dbContext.Set<T>()
-                .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == id);
+            IQueryable<T> query = dbContext.Set<T>().AsNoTracking();
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return await query.FirstOrDefaultAsync(e => e.Id == id);
         }
 
         public async Task<IReadOnlyList<T>> GetAsync(
             int pageNumber,
             int pageSize,
             Expression<Func<T, object>>? orderBy = null,
+            Func<IQueryable<T>, IQueryable<T>>? include = null,
             bool descending = false)
         {
             await using var dbContext = await ContextFactory.CreateDbContextAsync();
             int skip = (Math.Max(1, pageNumber) - 1) * pageSize;
 
             IQueryable<T> query = dbContext.Set<T>().AsNoTracking();
+            if (include != null)
+            {
+                query = include(query);
+            }
 
             // Handle Dynamic Ordering
             if (orderBy != null)
