@@ -1,4 +1,4 @@
-﻿namespace OrganizationService.Constants
+﻿namespace WMSCommon.Constants
 {
     public static class ClaimKey
     {

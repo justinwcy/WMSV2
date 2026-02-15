@@ -16,14 +16,18 @@ namespace WMSCommon.Repositories
         where T : class, ITenantEntity
         where TContext : DbContext
     {
-        protected readonly IDbContextFactory<TContext> ContextFactory = dbContextFactory;
-        protected readonly IUserContext UserContext = userContext;
-
-        public async Task<T?> GetByIdAsync(Guid id)
+        public async Task<T?> GetByIdAsync(
+            Guid id, 
+            Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            await using var dbContext = await ContextFactory.CreateDbContextAsync();
-            return await dbContext.Set<T>()
-                .AsNoTracking()
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+            IQueryable<T> query = dbContext.Set<T>().AsNoTracking();
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return await query
                 .Where(e => e.CompanyId == userContext.CompanyId)
                 .FirstOrDefaultAsync(e => e.Id == id);
         }
@@ -32,15 +36,21 @@ namespace WMSCommon.Repositories
             int pageNumber,
             int pageSize,
             Expression<Func<T, object>>? orderBy = null,
+            Func<IQueryable<T>, IQueryable<T>>? include = null,
             bool descending = false)
         {
-            await using var dbContext = await ContextFactory.CreateDbContextAsync();
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             int skip = (Math.Max(1, pageNumber) - 1) * pageSize;
 
-            Guid companyId = UserContext.CompanyId;
+            Guid companyId = userContext.CompanyId;
             IQueryable<T> query = dbContext.Set<T>()
                 .AsNoTracking()
                 .Where(e=> e.CompanyId == companyId);
+
+            if (include != null)
+            {
+                query = include(query);
+            }
 
             // Handle Dynamic Ordering
             if (orderBy != null)
@@ -58,7 +68,7 @@ namespace WMSCommon.Repositories
 
         public async Task<RepositoryResult<T>> CreateAsync(T entity)
         {
-            await using var dbContext = await ContextFactory.CreateDbContextAsync();
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             await dbContext.Set<T>().AddAsync(entity);
             await dbContext.SaveChangesAsync();
             dbContext.Entry(entity).State = EntityState.Detached;
@@ -67,9 +77,9 @@ namespace WMSCommon.Repositories
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            await using var dbContext = await ContextFactory.CreateDbContextAsync();
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
-            Guid companyId = UserContext.CompanyId;
+            Guid companyId = userContext.CompanyId;
             int rowsAffected = await dbContext.Set<T>()
                 .Where(e => e.Id == id && e.CompanyId == companyId)
                 .ExecuteDeleteAsync();
@@ -79,8 +89,8 @@ namespace WMSCommon.Repositories
 
         public async Task<int> CountAsync()
         {
-            await using var dbContext = await ContextFactory.CreateDbContextAsync();
-            Guid companyId = UserContext.CompanyId;
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+            Guid companyId = userContext.CompanyId;
             return await dbContext.Set<T>()
                 .Where(e => e.CompanyId == companyId)
                 .CountAsync();

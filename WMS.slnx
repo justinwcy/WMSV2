@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="CatalogService/CatalogService.csproj" Id="1b3ea3dc-2e65-4f10-b5d3-5bf5826151dd" />
   <Project Path="OrganizationService/OrganizationService.csproj" Id="0e810355-f49a-437e-853f-cb33a2d40709" />
   <Project Path="WMSCommon/WMSCommon.csproj" />
 </Solution>

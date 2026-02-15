@@ -5,7 +5,6 @@ using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-using OrganizationService.Contexts;
 using OrganizationService.DbContexts;
 using OrganizationService.Models;
 using OrganizationService.Results;
@@ -21,8 +20,7 @@ namespace OrganizationService.Repositories
         SignInManager<Staff> signInManager,
         IUserContext userContext,
         IPublishEndpoint publishEndpoint,
-        OrganizationDbContext dbContext,
-        IDbContextFactory<OrganizationDbContext> dbContextFactory) : 
+        OrganizationDbContext dbContext) : 
         IStaffRepository
     {
         private Guid CompanyId => userContext.CompanyId;

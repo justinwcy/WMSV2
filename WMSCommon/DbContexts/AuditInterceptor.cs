@@ -1,10 +1,10 @@
 ﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Warehouse.Entities;
 using WMSCommon.Contexts;
+using WMSCommon.Models;
 
-namespace OrganizationService.DbContexts
+namespace WMSCommon.DbContexts
 {
     public class AuditInterceptor(IUserContext userContext) : SaveChangesInterceptor
     {

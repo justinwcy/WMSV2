@@ -3,10 +3,8 @@ using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-using OrganizationService.Contexts;
 using OrganizationService.DbContexts;
 using OrganizationService.Models;
 using OrganizationService.Repositories;
@@ -16,6 +14,7 @@ using Serilog;
 
 using WMSCommon.Constants;
 using WMSCommon.Contexts;
+using WMSCommon.DbContexts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -100,7 +99,7 @@ builder.Services.AddDbContext<OrganizationDbContext>((serviceProvider, options) 
 {
     var auditInterceptor = serviceProvider.GetRequiredService<AuditInterceptor>();
     options.UseSqlServer(connectionString).AddInterceptors(auditInterceptor);
-}, ServiceLifetime.Scoped);
+});
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

@@ -1,4 +1,4 @@
-﻿namespace Warehouse.Entities
+﻿namespace CatalogService.Models
 {
     public class AuditEntry
     {

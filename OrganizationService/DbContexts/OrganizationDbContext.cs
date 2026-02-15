@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 using OrganizationService.Constants;
 using OrganizationService.Models;
-using Warehouse.Entities;
+using WMSCommon.Models;
 
 namespace OrganizationService.DbContexts
 {
@@ -48,15 +48,6 @@ namespace OrganizationService.DbContexts
             
             modelBuilder.Entity<IdentityRole<Guid>>().HasData(identityRoles);
         }
-
-        private static readonly List<IdentityRole<Guid>> SeededRoles = Enum.GetNames<Role>()
-            .Select((name, index) => new IdentityRole<Guid>
-            {
-                // We use a hardcoded format so it's 100% static
-                Id = new Guid($"00000000-0000-0000-0000-{index + 1:D12}"),
-                Name = name,
-                NormalizedName = name.ToUpperInvariant()
-            }).ToList();
 
         private void SeedCompany(ModelBuilder modelBuilder)
         {
