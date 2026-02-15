@@ -1,23 +1,33 @@
+using CatalogService.DbContexts;
+using CatalogService.Repositories;
+using WMSCommon.Contexts;
+using WMSCommon.DbContexts;
+using WMSCommon.Extensions;
+
 var builder = WebApplication.CreateBuilder(args);
+builder.AddAppSettingsConfig();
+builder.Services.AddFrontendCORS();
+builder.Host.AddSerilog();
+builder.Services.AddControllers();
 
 // Add services to the container.
+builder.Services.AddScoped<AuditInterceptor>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductDetailRepository, ProductDetailRepository>();
+builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+builder.Services.AddScoped<IUserContext, UserContext>();
+
+builder.Services.AddAppDbContextFactory<CatalogDbContext>(builder.Configuration);
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddFrontendAuthentication(builder.Configuration);
+builder.Services.AddMessageBus<CatalogDbContext>(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
+app.SetupMiddleware();
+await app.ApplyMigrations<CatalogDbContext>("Catalog Service");
 
 app.Run();

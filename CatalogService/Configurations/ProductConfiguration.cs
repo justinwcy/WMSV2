@@ -23,7 +23,7 @@ namespace CatalogService.Configurations
             builder.HasIndex(s => new
             {
                 s.CompanyId,
-                s.Tag,
+                s.Tags,
                 s.Name,
             });
         }
