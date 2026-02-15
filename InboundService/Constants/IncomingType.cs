@@ -1,8 +1,8 @@
 ﻿namespace InboundService.Constants
 {
-    public enum IncomingType
+    public enum InboundSource
     {
         Vendor = 0,
-        Refund = 1,
+        CustomerRefund = 1,
     }
 }

@@ -9,7 +9,7 @@ namespace InboundService.Configurations
         public void Configure(EntityTypeBuilder<Vendor> builder)
         {
             builder.HasKey(v => v.Id);
-            builder.HasMany(v => v.Incomings)
+            builder.HasMany(v => v.InboundOrders)
                 .WithOne(i => i.Vendor)
                 .HasForeignKey(i => i.VendorId)
                 .OnDelete(DeleteBehavior.Cascade);

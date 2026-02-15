@@ -10,6 +10,6 @@ namespace InboundService.Models
         public string Address { get; set; }
         public string Email { get; set; }
         public string Notes { get; set; }
-        public ICollection<Incoming> Incomings { get; set; }
+        public ICollection<InboundOrder> InboundOrders { get; set; }
     }
 }

@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace InboundService.Configurations
 {
-    public class IncomingConfiguration : IEntityTypeConfiguration<Incoming>
+    public class InboundOrderConfiguration : IEntityTypeConfiguration<InboundOrder>
     {
-        public void Configure(EntityTypeBuilder<Incoming> builder)
+        public void Configure(EntityTypeBuilder<InboundOrder> builder)
         {
             builder.HasKey(i => i.Id);
             builder.HasMany(i => i.IncomingDetails)
@@ -15,9 +15,11 @@ namespace InboundService.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(i => i.Vendor)
-                .WithMany(v => v.Incomings)
+                .WithMany(v => v.InboundOrders)
                 .HasForeignKey(i => i.VendorId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Property(i => i.Source).HasConversion<string>();
 
             builder.HasIndex(s => new
             {
