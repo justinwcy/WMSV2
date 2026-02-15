@@ -9,7 +9,6 @@ namespace CatalogService.Mappings
         {
             return new ProductDetail()
             {
-                CompanyId = productDetailCreateDTO.CompanyId,
                 ImageToShow = productDetailCreateDTO.ImageToShow,
                 Name = productDetailCreateDTO.Name,
                 Price = productDetailCreateDTO.Price,

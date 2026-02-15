@@ -10,12 +10,12 @@ using WMSCommon.Results;
 
 namespace CatalogService.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/v1/CatalogService/[controller]")]
     public class ProductsController(
         IProductRepository productRepository) : ControllerBase
     {
-        [Authorize]
         [HttpGet("{id:guid}", Name = "GetProductById")]
         public async Task<ActionResult<ProductReadDTO>> GetProductById(Guid id)
         {
@@ -35,7 +35,6 @@ namespace CatalogService.Controllers
             return Ok(productReadDTO);
         }
 
-        [Authorize]
         [HttpPost]
         public async Task<ActionResult<ProductReadDTO>> Create(ProductCreateDTO productCreateDTO)
         {
@@ -50,7 +49,6 @@ namespace CatalogService.Controllers
                 new { Id = product.Id }, product.ToReadDTO());
         }
 
-        [Authorize]
         [HttpPatch("{id:guid}")]
         public async Task<ActionResult<ProductReadDTO>> Update(
             Guid id,

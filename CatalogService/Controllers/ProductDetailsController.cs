@@ -2,10 +2,10 @@
 using CatalogService.Mappings;
 using CatalogService.Models;
 using CatalogService.Repositories;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
+
 using WMSCommon.Results;
 
 namespace CatalogService.Controllers

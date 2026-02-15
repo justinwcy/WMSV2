@@ -7,12 +7,12 @@ namespace CatalogService.Mappings
     {
         public static Dimensions ToModel(this DimensionsDTO dimensionsDTO)
         {
-            return new Dimensions(dimensionsDTO.Height, dimensionsDTO.Width, dimensionsDTO.Length);
+            return new Dimensions(dimensionsDTO.HeightMm, dimensionsDTO.WidthMm, dimensionsDTO.LengthMm);
         }
 
         public static DimensionsDTO ToReadDTO(this Dimensions dimensions)
         {
-            return new DimensionsDTO(dimensions.Height, dimensions.Width, dimensions.Length);
+            return new DimensionsDTO(dimensions.HeightMm, dimensions.WidthMm, dimensions.LengthMm);
         }
     }
 }

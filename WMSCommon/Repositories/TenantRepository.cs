@@ -68,6 +68,7 @@ namespace WMSCommon.Repositories
 
         public async Task<RepositoryResult<T>> CreateAsync(T entity)
         {
+            entity.CompanyId = userContext.CompanyId;
             await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             await dbContext.Set<T>().AddAsync(entity);
             await dbContext.SaveChangesAsync();

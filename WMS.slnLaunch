@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "StartAll",
+    "Projects": [
+      {
+        "Path": "CatalogService\\CatalogService.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "OrganizationService\\OrganizationService.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      }
+    ]
+  }
+]

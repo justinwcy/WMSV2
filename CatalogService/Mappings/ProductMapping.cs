@@ -33,8 +33,8 @@ namespace CatalogService.Mappings
                 Name = product.Name,
                 Tags = product.Tags,
                 Description = product.Description,
-                Details = product.Details.Select(d => d.ToReadDTO()),
-                Images = product.Images.Select(i => i.ToReadDTO()),
+                Details = product.Details?.Select(d => d.ToReadDTO()) ?? Enumerable.Empty<ProductDetailReadDTO>(),
+                Images = product.Images?.Select(i => i.ToReadDTO()) ?? Enumerable.Empty<ProductImageReadDTO>(),
                 CompanyId = product.CompanyId,
             };
         }
