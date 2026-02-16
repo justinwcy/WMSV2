@@ -1,15 +1,12 @@
 ﻿using InboundService.Constants;
 
-using WMSCommon.Entities;
-
-namespace InboundService.Models
+namespace InboundService.DTOs
 {
-    public class InboundOrderDetail : ITenantEntity
+    public class InboundOrderDetailReadDTO
     {
         public Guid Id { get; set; }
         public Guid CompanyId { get; set; }
         public Guid InboundOrderId { get; set; }
-        public InboundOrder InboundOrder { get; set; }
         public Guid ProductDetailId { get; set; }
         public IncomingStatus Status { get; set; }
         public int Quantity { get; set; }

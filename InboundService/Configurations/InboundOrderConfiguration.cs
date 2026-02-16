@@ -10,8 +10,8 @@ namespace InboundService.Configurations
         {
             builder.HasKey(i => i.Id);
             builder.HasMany(i => i.IncomingDetails)
-                .WithOne(d => d.Incoming)
-                .HasForeignKey(d => d.IncomingId)
+                .WithOne(d => d.InboundOrder)
+                .HasForeignKey(d => d.InboundOrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(i => i.Vendor)

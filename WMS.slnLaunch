@@ -11,6 +11,11 @@
         "Path": "OrganizationService\\OrganizationService.csproj",
         "Action": "Start",
         "DebugTarget": "https"
+      },
+      {
+        "Path": "InboundService\\InboundService.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
       }
     ]
   }

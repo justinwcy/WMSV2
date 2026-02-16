@@ -11,9 +11,9 @@ namespace InboundService.Configurations
         {
             builder.HasKey(i => i.Id);
 
-            builder.HasOne(d => d.Incoming)
+            builder.HasOne(d => d.InboundOrder)
                 .WithMany(i => i.IncomingDetails)
-                .HasForeignKey(d => d.IncomingId)
+                .HasForeignKey(d => d.InboundOrderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.Property(d => d.Status).HasConversion<string>();

@@ -67,7 +67,7 @@ namespace CatalogService.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<PaginationResult<ProductReadDTO>>> Get(
+        public async Task<ActionResult<PaginationResult<ProductDetailReadDTO>>> Get(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {

@@ -23,7 +23,7 @@ namespace InboundService.Repositories
                 return RepositoryResult<InboundOrderDetail>.Failure("InboundOrderDetail not found");
             }
 
-            existingInboundOrderDetail.IncomingId = entity.IncomingId;
+            existingInboundOrderDetail.InboundOrderId = entity.InboundOrderId;
             existingInboundOrderDetail.ProductDetailId = entity.ProductDetailId;
             existingInboundOrderDetail.Status = entity.Status;
             existingInboundOrderDetail.Quantity = entity.Quantity;
