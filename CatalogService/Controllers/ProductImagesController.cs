@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 using WMSCommon.Results;
 
+using static MassTransit.ValidationResultExtensions;
+
 namespace CatalogService.Controllers
 {
     [ApiController]
@@ -95,8 +97,8 @@ namespace CatalogService.Controllers
         public async Task<IActionResult> Delete(
             Guid id)
         {
-            var success = await productImageRepository.DeleteAsync(id);
-            if (success)
+            var result = await productImageRepository.DeleteAsync(id);
+            if (result.IsSuccess)
             {
                 return NoContent();
             }

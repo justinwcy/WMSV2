@@ -72,7 +72,7 @@ namespace InboundService.Controllers
             var inboundOrderDetails = await inboundOrderDetailRepository.GetAsync(
                 pageNumber, 
                 pageSize,
-                orderBy: c => c.Quantity,
+                orderBy: c => c.Status,
                 null);
             int productCount = await inboundOrderDetailRepository.CountAsync();
 

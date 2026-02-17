@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using WMSCommon.Contracts;
+using WMSCommon.Contracts.CatalogService;
 using WMSCommon.Entities;
 
 namespace CatalogService.Models
 {
-    public class ProductDetail: ITenantEntity
+    public class ProductDetail: ITenantEntity, IProductDetail
     {
         public Guid Id { get; set; }
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using InboundService.DbContexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace CatalogService.DbContexts
 {

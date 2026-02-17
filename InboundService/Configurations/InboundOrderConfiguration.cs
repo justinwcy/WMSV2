@@ -24,7 +24,7 @@ namespace InboundService.Configurations
             builder.HasIndex(s => new
             {
                 s.CompanyId,
-                s.PONumber,
+                s.EstimatedReceivedDate,
             });
         }
     }

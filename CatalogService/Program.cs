@@ -1,8 +1,13 @@
 using CatalogService.DbContexts;
+using CatalogService.Models;
 using CatalogService.Repositories;
+using CatalogService.Services;
 using WMSCommon.Contexts;
 using WMSCommon.DbContexts;
 using WMSCommon.Extensions;
+using WMSCommon.Services;
+
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddAppSettingsConfig();
@@ -16,11 +21,11 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductDetailRepository, ProductDetailRepository>();
 builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
 builder.Services.AddScoped<IUserContext, UserContext>();
+builder.Services.AddScoped<IProductDetailService, ProductDetailService>();
 
 builder.Services.AddAppDbContextFactory<CatalogDbContext>(builder.Configuration);
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddFrontendAuthentication(builder.Configuration);
 builder.Services.AddMessageBus<CatalogDbContext>(builder.Configuration);

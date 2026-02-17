@@ -5,12 +5,14 @@ using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+using OrganizationService.Constants;
 using OrganizationService.DbContexts;
 using OrganizationService.Models;
 using OrganizationService.Results;
 
 using WMSCommon.Contexts;
 using WMSCommon.Contracts;
+using WMSCommon.Contracts.OrganizationService;
 
 namespace OrganizationService.Repositories
 {
@@ -158,7 +160,15 @@ namespace OrganizationService.Repositories
                 UserResult successResult = UserResult.Success(staff, roles);
                 successResult.Message = "User created successfully";
 
-                var staffCreated = new StaffCreated() { Id = staff.Id };
+                var staffCreated = new StaffCreated()
+                {
+                    Id = staff.Id,
+                    CompanyId = staff.CompanyId,
+                    Email = staff.Email,
+                    FirstName = staff.FirstName,
+                    LastName = staff.LastName,
+                    UserName = staff.UserName
+                };
                 await publishEndpoint.Publish(staffCreated);
 
                 await transaction.CommitAsync();
@@ -177,53 +187,85 @@ namespace OrganizationService.Repositories
             Staff entity,
             IEnumerable<string> roles)
         {
-            var staff = await userManager.FindByIdAsync(entity.Id.ToString());
-            if (staff == null)
+            await using var transaction = await dbContext.Database.BeginTransactionAsync();
+            try
             {
-                return UserResult.Failure("User not found");
-            }
-
-            staff.Email = entity.Email;
-            staff.UserName = entity.UserName;
-            staff.FirstName = entity.FirstName;
-            staff.LastName = entity.LastName;
-
-            var result = await userManager.UpdateAsync(staff);
-            if (!result.Succeeded)
-            {
-                string errorMessage = string.Join(", ", result.Errors.Select(x => x.Description));
-                UserResult failureResult = UserResult.Failure(errorMessage);
-                return failureResult;
-            }
-
-            var currentUserRoles = await userManager.GetRolesAsync(staff);
-            await userManager.RemoveFromRolesAsync(staff, currentUserRoles);
-            foreach (var roleName in roles)
-            {
-                var role = await roleManager.FindByNameAsync(roleName);
-                if (role != null)
+                var staff = await userManager.FindByIdAsync(entity.Id.ToString());
+                if (staff == null)
                 {
-                    await userManager.AddToRoleAsync(staff, role.Name);
+                    return UserResult.Failure("User not found");
                 }
-            }
 
-            return UserResult.Success(staff, roles);
+                staff.Email = entity.Email;
+                staff.UserName = entity.UserName;
+                staff.FirstName = entity.FirstName;
+                staff.LastName = entity.LastName;
+
+                var result = await userManager.UpdateAsync(staff);
+                if (!result.Succeeded)
+                {
+                    await transaction.RollbackAsync();
+                    string errorMessage = string.Join(", ", result.Errors.Select(x => x.Description));
+                    UserResult failureResult = UserResult.Failure(errorMessage);
+                    return failureResult;
+                }
+
+                var currentUserRoles = await userManager.GetRolesAsync(staff);
+                await userManager.RemoveFromRolesAsync(staff, currentUserRoles);
+                await userManager.AddToRolesAsync(staff, roles);
+                
+                var staffDeleted = new StaffUpdated()
+                {
+                    Id = staff.Id,
+                    CompanyId = staff.CompanyId,
+                    Email = staff.Email,
+                    FirstName = staff.FirstName,
+                    LastName = staff.LastName,
+                    UserName = staff.UserName,
+                };
+
+                await publishEndpoint.Publish(staffDeleted);
+                await transaction.CommitAsync();
+
+                return UserResult.Success(staff, roles);
+            }
+            catch (Exception exception)
+            {
+                await transaction.RollbackAsync();
+                return UserResult.Failure(exception.Message);
+            }
         }
+
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var staffFound = await userManager.Users
-                .Where(s=>s.CompanyId == CompanyId)
-                .FirstOrDefaultAsync(s=>s.Id == id);
-            if (staffFound == null)
+            await using var transaction = await dbContext.Database.BeginTransactionAsync();
+            try
             {
+                var staffFound = await userManager.Users
+                    .Where(s => s.CompanyId == CompanyId)
+                    .FirstOrDefaultAsync(s => s.Id == id);
+                if (staffFound == null)
+                {
+                    return false;
+                }
+
+                var result = await userManager.DeleteAsync(staffFound);
+                if (!result.Succeeded)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+                var staffDeleted = new StaffDeleted() { Id = id };
+                await publishEndpoint.Publish(staffDeleted);
+                await transaction.CommitAsync();
+
+                return result.Succeeded;
+            }
+            catch (Exception exception)
+            {
+                await transaction.RollbackAsync();
                 return false;
             }
-
-            var result = await userManager.DeleteAsync(staffFound);
-            var staffDeleted = new StaffDeleted() { Id = id };
-            await publishEndpoint.Publish(staffDeleted);
-
-            return result.Succeeded;
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using CatalogService.DTOs;
-using CatalogService.Models;
+using WMSCommon.Contracts;
 
 namespace CatalogService.Mappings
 {

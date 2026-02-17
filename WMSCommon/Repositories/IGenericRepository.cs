@@ -7,22 +7,22 @@ namespace WMSCommon.Repositories
 {
     public interface IGenericRepository<T> where T : IGenericEntity
     {
-        Task<T?> GetByIdAsync(Guid id, Func<IQueryable<T>, IQueryable<T>>? include = null);
+        public Task<T?> GetByIdAsync(Guid id, Func<IQueryable<T>, IQueryable<T>>? include = null);
 
-        Task<IReadOnlyList<T>> GetAsync(
+        public Task<IReadOnlyList<T>> GetAsync(
             int pageNumber, 
             int pageSize,
             Expression<Func<T, object>>? orderBy = null,
             Func<IQueryable<T>, IQueryable<T>>? include = null,
             bool descending = false);
 
-        Task<RepositoryResult<T>> CreateAsync(T entity);
+        public Task<RepositoryResult<T>> CreateAsync(T entity);
 
         public Task<RepositoryResult<T>> UpdateAsync(T entity);
 
-        public Task<bool> DeleteAsync(Guid id);
+        public Task<RepositoryResult<T>> DeleteAsync(Guid id);
 
         // count total records for pagination metadata
-        Task<int> CountAsync();
+        public Task<int> CountAsync();
     }
 }

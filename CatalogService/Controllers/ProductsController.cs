@@ -2,11 +2,15 @@
 using CatalogService.Mappings;
 using CatalogService.Models;
 using CatalogService.Repositories;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+
 using WMSCommon.Results;
+
+using static MassTransit.ValidationResultExtensions;
 
 namespace CatalogService.Controllers
 {
@@ -99,8 +103,8 @@ namespace CatalogService.Controllers
         public async Task<IActionResult> Delete(
             Guid id)
         {
-            var success = await productRepository.DeleteAsync(id);
-            if (success)
+            var result = await productRepository.DeleteAsync(id);
+            if (result.IsSuccess)
             {
                 return NoContent();
             }

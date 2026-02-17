@@ -70,16 +70,19 @@ namespace WMSCommon.Repositories
             return RepositoryResult<T>.Success(entity);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<RepositoryResult<T>> DeleteAsync(Guid id)
         {
             await using var dbContext = await ContextFactory.CreateDbContextAsync();
+            var entity = await dbContext.Set<T>()
+                .FirstOrDefaultAsync(e => e.Id == id);
+            if (entity == null)
+            {
+                return RepositoryResult<T>.Failure("Entity not found.");
+            }
 
-            // EF Core 7/8+: High performance direct deletion
-            int rowsAffected = await dbContext.Set<T>()
-                .Where(e => e.Id == id)
-                .ExecuteDeleteAsync();
-
-            return rowsAffected > 0;
+            dbContext.Set<T>().Remove(entity);
+            await dbContext.SaveChangesAsync();
+            return RepositoryResult<T>.Success(entity);
         }
 
         public async Task<int> CountAsync()
@@ -88,6 +91,19 @@ namespace WMSCommon.Repositories
             return await dbContext.Set<T>().CountAsync();
         }
 
-        public abstract Task<RepositoryResult<T>> UpdateAsync(T entity);
+        public async Task<RepositoryResult<T>> UpdateAsync(T entity)
+        {
+            await using var dbContext = await ContextFactory.CreateDbContextAsync();
+            var existing = await dbContext.Set<T>().FindAsync(entity.Id);
+            if (existing == null)
+            {
+                return RepositoryResult<T>.Failure($"{typeof(T).Name} not found.");
+            }
+
+            dbContext.Entry(existing).CurrentValues.SetValues(entity);
+
+            await dbContext.SaveChangesAsync();
+            return RepositoryResult<T>.Success(existing);
+        }
     }
 }

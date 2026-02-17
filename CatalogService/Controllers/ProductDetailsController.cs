@@ -2,10 +2,10 @@
 using CatalogService.Mappings;
 using CatalogService.Models;
 using CatalogService.Repositories;
-
+using CatalogService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using WMSCommon.Contracts.CatalogService;
 using WMSCommon.Results;
 
 namespace CatalogService.Controllers
@@ -13,7 +13,8 @@ namespace CatalogService.Controllers
     [ApiController]
     [Route("api/v1/CatalogService/[controller]")]
     public class ProductDetailsController(
-        IProductDetailRepository productDetailRepository) : ControllerBase
+        IProductDetailRepository productDetailRepository,
+        IProductDetailService productDetailService) : ControllerBase
     {
         [Authorize]
         [HttpGet("{id:guid}", Name = "GetProductDetailById")]
@@ -36,7 +37,8 @@ namespace CatalogService.Controllers
         public async Task<ActionResult<ProductDetailReadDTO>> Create(ProductDetailCreateDTO productDetailCreateDTO)
         {
             var productDetail = productDetailCreateDTO.ToModel();
-            var result = await productDetailRepository.CreateAsync(productDetail);
+            RepositoryResult<ProductDetail> result = await productDetailService
+                .CreateAndPublishAsync<ProductDetailCreated>(productDetail);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Message);
@@ -54,6 +56,7 @@ namespace CatalogService.Controllers
         {
             ProductDetail productDetail = productDetailUpdateDTO.ToModel();
             productDetail.Id = id;
+
 
             RepositoryResult<ProductDetail> updateProductDetailResult = 
                 await productDetailRepository.UpdateAsync(productDetail);
@@ -95,8 +98,8 @@ namespace CatalogService.Controllers
         public async Task<IActionResult> Delete(
             Guid id)
         {
-            var success = await productDetailRepository.DeleteAsync(id);
-            if (success)
+            var result = await productDetailRepository.DeleteAsync(id);
+            if (result.IsSuccess)
             {
                 return NoContent();
             }

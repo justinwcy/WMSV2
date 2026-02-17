@@ -1,10 +1,8 @@
 ﻿using InboundService.Models;
-
 using Microsoft.EntityFrameworkCore;
-
 using WMSCommon.DbContexts;
 
-namespace CatalogService.DbContexts
+namespace InboundService.DbContexts
 {
     public class InboundDbContext(DbContextOptions<InboundDbContext> options) :
         BaseDbContext(options)

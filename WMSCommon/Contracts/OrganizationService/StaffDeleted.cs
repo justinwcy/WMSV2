@@ -1,4 +1,4 @@
-﻿namespace WMSCommon.Contracts
+﻿namespace WMSCommon.Contracts.OrganizationService
 {
     public class StaffDeleted
     {

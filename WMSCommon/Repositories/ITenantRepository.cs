@@ -20,7 +20,7 @@ namespace WMSCommon.Repositories
 
         public Task<RepositoryResult<T>> UpdateAsync(T entity);
 
-        public Task<bool> DeleteAsync(Guid id);
+        public Task<RepositoryResult<T>> DeleteAsync(Guid id);
 
         // count total records for pagination metadata
         Task<int> CountAsync();
