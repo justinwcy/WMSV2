@@ -23,8 +23,6 @@ namespace OrganizationService.DbContexts
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(OrganizationDbContext).Assembly);
             SeedRoles(modelBuilder);
             SeedCompany(modelBuilder);
-
-            modelBuilder.AddTransactionalOutboxEntities();
         }
 
         private void SeedRoles(ModelBuilder modelBuilder)

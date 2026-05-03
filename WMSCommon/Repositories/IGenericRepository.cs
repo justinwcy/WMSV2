@@ -5,7 +5,7 @@ using WMSCommon.Results;
 
 namespace WMSCommon.Repositories
 {
-    public interface IGenericRepository<T> where T : IGenericEntity
+    public interface IGenericRepository<T>
     {
         public Task<T?> GetByIdAsync(Guid id, Func<IQueryable<T>, IQueryable<T>>? include = null);
 

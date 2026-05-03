@@ -9,9 +9,10 @@ using WMSCommon.Repositories;
 namespace CatalogService.Repositories
 {
     public class ProductImageRepository(
-        IDbContextFactory<CatalogDbContext> dbContextFactory,
-        IUserContext userContext) :
-        TenantRepository<ProductImage, CatalogDbContext>(dbContextFactory, userContext), IProductImageRepository
+        CatalogDbContext dbContext,
+        IUserContext userContext) : 
+        TenantRepository<ProductImage, CatalogDbContext>(dbContext, userContext), 
+        IProductImageRepository
     {
     }
 }

@@ -6,7 +6,7 @@ using WMSCommon.Results;
 
 namespace WMSCommon.Services
 {
-    public interface IGenericSyncService<TGenericEntity> where TGenericEntity : class, IGenericEntity, ISyncEntity
+    public interface IGenericSyncService<TGenericEntity> where TGenericEntity : class, ISyncEntity
     {
         public Task<RepositoryResult<TGenericEntity>> CreateAndPublishAsync<TEvent>(TGenericEntity entity)
             where TEvent : ISyncEvent<TGenericEntity>, new();

@@ -10,18 +10,17 @@ using WMSCommon.Results;
 
 namespace WMSCommon.Repositories
 {
-    public abstract class TenantRepository<T, TContext>(
-        IDbContextFactory<TContext> dbContextFactory,
+    public abstract class TenantRepository<T, TDbContext>(
+        TDbContext dbContext,
         IUserContext userContext)
         : ITenantRepository<T>
         where T : class, ITenantEntity
-        where TContext : DbContext
+        where TDbContext : DbContext
     {
         public async Task<T?> GetByIdAsync(
             Guid id, 
             Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             IQueryable<T> query = dbContext.Set<T>().AsNoTracking();
             if (include != null)
             {
@@ -40,7 +39,6 @@ namespace WMSCommon.Repositories
             Func<IQueryable<T>, IQueryable<T>>? include = null,
             bool descending = false)
         {
-            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             int skip = (Math.Max(1, pageNumber) - 1) * pageSize;
 
             Guid companyId = userContext.CompanyId;
@@ -70,7 +68,6 @@ namespace WMSCommon.Repositories
         public async Task<RepositoryResult<T>> CreateAsync(T entity)
         {
             entity.CompanyId = userContext.CompanyId;
-            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             await dbContext.Set<T>().AddAsync(entity);
             await dbContext.SaveChangesAsync();
             dbContext.Entry(entity).State = EntityState.Detached;
@@ -79,7 +76,6 @@ namespace WMSCommon.Repositories
 
         public async Task<RepositoryResult<T>> DeleteAsync(Guid id)
         {
-            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             var entity = await dbContext.Set<T>()
                 .FirstOrDefaultAsync(e => e.Id == id && e.CompanyId == userContext.CompanyId);
             if (entity == null)
@@ -94,7 +90,6 @@ namespace WMSCommon.Repositories
 
         public async Task<int> CountAsync()
         {
-            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             Guid companyId = userContext.CompanyId;
             return await dbContext.Set<T>()
                 .Where(e => e.CompanyId == companyId)
@@ -103,7 +98,6 @@ namespace WMSCommon.Repositories
 
         public async Task<RepositoryResult<T>> UpdateAsync(T entity)
         {
-            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             var existing = await dbContext.Set<T>().FindAsync(entity.Id);
             if (existing == null)
             {

@@ -17,14 +17,13 @@ namespace OrganizationService.Service
     public class TokenService(
         IConfiguration configuration, 
         UserManager<Staff> userManager,
-        IDbContextFactory<OrganizationDbContext> dbContextFactory) : ITokenService
+        OrganizationDbContext dbContext) : ITokenService
     {
         private readonly SymmetricSecurityKey _symmetricSecurityKey =
             new(Encoding.UTF8.GetBytes(configuration["JWT:SigningKey"]!));
 
         public async Task<string> CreateToken(Staff staff)
         {
-            
             var claims = new List<Claim>()
             {
                 new Claim(JwtRegisteredClaimNames.Email, staff.Email),
@@ -66,7 +65,6 @@ namespace OrganizationService.Service
                 StaffId = staff.Id,
             };
 
-            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             await DeleteRefreshToken(staff.Id);
             dbContext.UserTokens.Add(userAuthentication);
             await dbContext.SaveChangesAsync();
@@ -81,7 +79,6 @@ namespace OrganizationService.Service
                 return Guid.Empty;
             }
 
-            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             var foundUserAuthentication =
                 await dbContext.UserTokens
                     .FirstOrDefaultAsync(userAuthentication => userAuthentication.RefreshToken == refreshToken);
@@ -98,7 +95,6 @@ namespace OrganizationService.Service
 
         public async Task<bool> DeleteRefreshToken(Guid staffId)
         {
-            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             var foundUserAuthentication =
                 await dbContext.UserTokens
                     .FirstOrDefaultAsync(

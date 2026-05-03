@@ -8,8 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 using WMSCommon.Results;
 
-using static MassTransit.ValidationResultExtensions;
-
 namespace CatalogService.Controllers
 {
     [ApiController]

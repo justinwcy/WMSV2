@@ -1,4 +1,6 @@
-﻿using MassTransit;
+﻿using JasperFx.CodeGeneration;
+using JasperFx.Resources;
+using MassTransit;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -12,6 +14,10 @@ using Serilog;
 
 using WMSCommon.Constants;
 using WMSCommon.DbContexts;
+using Wolverine;
+using Wolverine.EntityFrameworkCore;
+using Wolverine.RabbitMQ;
+using Wolverine.SqlServer;
 
 namespace WMSCommon.Extensions
 {
@@ -130,47 +136,27 @@ namespace WMSCommon.Extensions
             IConfiguration configuration)
             where TContext : DbContext
         {
-            services.AddMassTransit(busRegistrationConfigurator =>
+            string connectionString = configuration.GetConnectionString("Default")!;
+            services.AddWolverine(ExtensionDiscovery.ManualOnly, options =>
             {
-                busRegistrationConfigurator.AddEntityFrameworkOutbox<TContext>(outboxConfigurator =>
-                {
-                    outboxConfigurator.QueryDelay = TimeSpan.FromSeconds(5);
-                    outboxConfigurator.UseSqlServer().UseBusOutbox();
-                });
+                options.CodeGeneration.TypeLoadMode = TypeLoadMode.Auto;
+                options.PersistMessagesWithSqlServer(connectionString);
+                options.UseEntityFrameworkCoreTransactions();
+                options.Services.AddDbContextWithWolverineIntegration<TContext>(x => x.UseSqlServer(connectionString));
+                options.Services.AddResourceSetupOnStartup();
 
-                busRegistrationConfigurator.SetKebabCaseEndpointNameFormatter();
-                busRegistrationConfigurator.UsingRabbitMq((context, cfg) =>
-                {
-                    var rabbitMQHost = configuration[Config.MQHost];
-                    var rabbitMQPort = ushort.Parse(configuration[Config.MQPort]);
-                    cfg.Host(
-                        rabbitMQHost,
-                        rabbitMQPort,
-                        "/",
-                        h =>
-                        {
-                            h.Username(configuration[Config.MQUsername]);
-                            h.Password(configuration[Config.MQPassword]);
-                        });
-                    cfg.ConfigureEndpoints(context);
-                });
+                options.UseRabbitMq(c =>
+                    {
+                        c.HostName = configuration[Config.MQHost]!;
+                        c.Port = int.Parse(configuration[Config.MQPort]!);
+                        c.UserName = configuration[Config.MQUsername]!;
+                        c.Password = configuration[Config.MQPassword]!;
+                    })
+                    .AutoProvision()
+                    .UseConventionalRouting();
+                options.Policies.DisableConventionalLocalRouting();
             });
-            return services;
-        }
-
-        public static IServiceCollection AddAppDbContextFactory<TContext>(
-            this IServiceCollection services,
-            IConfiguration configuration)
-            where TContext : DbContext
-        {
-            var connectionString = configuration.GetConnectionString("Default");
-            services.AddDbContextFactory<TContext>(
-                (serviceProvider, options) => {
-                    var auditInterceptor = serviceProvider.GetRequiredService<AuditInterceptor>();
-                    options.UseSqlServer(connectionString).AddInterceptors(auditInterceptor);
-                },
-                ServiceLifetime.Scoped);
-
+            
             return services;
         }
 

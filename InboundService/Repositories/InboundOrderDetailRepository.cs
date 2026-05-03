@@ -1,5 +1,4 @@
-﻿using CatalogService.DbContexts;
-using InboundService.DbContexts;
+﻿using InboundService.DbContexts;
 using InboundService.Models;
 using Microsoft.EntityFrameworkCore;
 using WMSCommon.Contexts;

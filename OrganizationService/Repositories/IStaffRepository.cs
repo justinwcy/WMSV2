@@ -36,6 +36,6 @@ namespace OrganizationService.Repositories
             Staff staff, 
             IEnumerable<string> roles);
 
-        public Task<bool> DeleteAsync(Guid id);
+        public Task<UserResult> DeleteAsync(Guid id);
     }
 }

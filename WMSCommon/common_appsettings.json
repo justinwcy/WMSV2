@@ -27,8 +27,5 @@
     "RabbitMQHost": "rabbitmq-clusterip-service",
     "RabbitMQPort": "5672",
     "RabbitMQUsername": "guest",
-    "RabbitMQPassword": "guest",
-
-    "ChatServiceUrl": "http://chat-clusterip-service:7272",
-    "UserServiceUrl": "http://user-clusterip-service:7093"
+    "RabbitMQPassword": "guest"
 }

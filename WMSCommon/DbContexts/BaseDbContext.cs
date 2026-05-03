@@ -2,6 +2,7 @@
 using WMSCommon.Models;
 
 using MassTransit;
+using Wolverine.EntityFrameworkCore;
 
 namespace WMSCommon.DbContexts
 {
@@ -13,7 +14,7 @@ namespace WMSCommon.DbContexts
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.AddTransactionalOutboxEntities();
+            modelBuilder.MapWolverineEnvelopeStorage(); 
         }
     }
 }

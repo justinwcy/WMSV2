@@ -1,5 +1,4 @@
-﻿using CatalogService.DbContexts;
-using InboundService.DbContexts;
+﻿using InboundService.DbContexts;
 using InboundService.Models;
 using Microsoft.EntityFrameworkCore;
 using WMSCommon.Contexts;
@@ -9,9 +8,9 @@ using WMSCommon.Results;
 namespace InboundService.Repositories
 {
     public class InboundOrderRepository(
-        IDbContextFactory<InboundDbContext> dbContextFactory,
+        InboundDbContext dbContext,
         IUserContext userContext) : 
-        TenantRepository<InboundOrder, InboundDbContext>(dbContextFactory, userContext), IInboundOrderRepository
+        TenantRepository<InboundOrder, InboundDbContext>(dbContext, userContext), IInboundOrderRepository
     {
     }
 }

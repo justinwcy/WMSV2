@@ -24,15 +24,13 @@ builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IUserContext, UserContext>();
 
-builder.Services.AddAppDbContextFactory<OrganizationDbContext>(builder.Configuration);
-
-// For Identity, MassTransit, and Scoped Services
 builder.Services.AddAppDbContext<OrganizationDbContext>(builder.Configuration);
 
 builder.Services.AddIdentity<Staff, IdentityRole<Guid>>(
         options =>
         {
             options.Password.RequiredLength = 6;
+            options.User.RequireUniqueEmail = true;
         })
     .AddEntityFrameworkStores<OrganizationDbContext>();
 

@@ -1,22 +1,16 @@
-﻿using MassTransit;
-
-using Microsoft.EntityFrameworkCore;
-
-using WMSCommon.Contracts;
-using WMSCommon.Contracts.CatalogService;
+﻿using WMSCommon.Contracts;
 using WMSCommon.Entities;
 using WMSCommon.Repositories;
 using WMSCommon.Results;
+using Wolverine;
 
 namespace WMSCommon.Services
 {
-    public class GenericSyncService<TEntity, TContext>(
+    public class GenericSyncService<TEntity>(
         IGenericRepository<TEntity> repository,
-        IPublishEndpoint publishEndpoint,
-        TContext dbContext)
+        IMessageBus messageBus)
         : IGenericSyncService<TEntity>
-        where TEntity : class, IGenericEntity, ISyncEntity
-        where TContext : DbContext
+        where TEntity : class, ISyncEntity
     {
         // Create
         public async Task<RepositoryResult<TEntity>> CreateAndPublishAsync<TEvent>(TEntity entity)
@@ -46,28 +40,16 @@ namespace WMSCommon.Services
             Func<Task<RepositoryResult<TEntity>>> repositoryAction)
             where TEvent : ISyncEvent<TEntity>, new()
         {
-            await using var transaction = await dbContext.Database.BeginTransactionAsync();
-            try
-            {
-                RepositoryResult<TEntity> result = await repositoryAction();
-                if (!result.IsSuccess)
-                {
-                    return result;
-                }
-
-                var message = new TEvent();
-                message.MapFrom(result.Data);
-                await publishEndpoint.Publish(message);
-
-                await dbContext.SaveChangesAsync();
-                await transaction.CommitAsync();
+            var result = await repositoryAction();
+            if (!result.IsSuccess)
                 return result;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                return RepositoryResult<TEntity>.Failure(ex.Message);
-            }
+
+            var message = new TEvent();
+            message.MapFrom(result.Data);
+
+            await messageBus.PublishAsync(message);
+
+            return result;
         }
     }
 }

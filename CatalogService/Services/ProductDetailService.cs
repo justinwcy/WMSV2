@@ -1,19 +1,17 @@
 ﻿using CatalogService.DbContexts;
 using CatalogService.Models;
-
-using MassTransit;
-
+using WMSCommon.Contracts.CatalogService;
 using WMSCommon.Repositories;
 using WMSCommon.Services;
+using Wolverine;
 
 namespace CatalogService.Services
 {
     public class ProductDetailService(
-        IGenericRepository<ProductDetail> repository,
-        IPublishEndpoint publishEndpoint,
-        CatalogDbContext dbContext)
-        : GenericSyncService<ProductDetail, CatalogDbContext>(repository, publishEndpoint, dbContext),
-            IProductDetailService
+        IGenericRepository<IProductDetail> repository,
+        IMessageBus publishEndpoint) : 
+        GenericSyncService<IProductDetail>(repository, publishEndpoint), 
+        IProductDetailService
     {
     }
 }

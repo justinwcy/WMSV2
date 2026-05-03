@@ -182,7 +182,7 @@ namespace OrganizationService.Controllers
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             var result = await staffRepository.DeleteAsync(id);
-            if (!result)
+            if (!result.IsSuccess)
             {
                 return NotFound(result);
             }

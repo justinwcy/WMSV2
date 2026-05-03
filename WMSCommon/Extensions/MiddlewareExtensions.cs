@@ -29,10 +29,10 @@ namespace WMSCommon.Extensions
             return app;
         }
 
-        public static async Task ApplyMigrations<TContext>(
+        public static async Task ApplyMigrations<TDbContext>(
             this WebApplication app, 
             string serviceName)
-            where TContext : DbContext
+            where TDbContext : DbContext
         {
             using var scope = app.Services.CreateScope();
             var services = scope.ServiceProvider;
@@ -42,9 +42,7 @@ namespace WMSCommon.Extensions
 
             try
             {
-                var dbContextFactory = services.GetRequiredService<IDbContextFactory<TContext>>();
-                await using var dbContext = await dbContextFactory.CreateDbContextAsync();
-
+                var dbContext = services.GetRequiredService<TDbContext>();
                 logger.LogInformation("--> Attempting to run migrations...");
                 await dbContext.Database.MigrateAsync();
 

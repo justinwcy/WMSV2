@@ -1,18 +1,11 @@
-﻿using System.Data;
-
-using MassTransit;
-
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
-using OrganizationService.Constants;
 using OrganizationService.DbContexts;
 using OrganizationService.Models;
 using OrganizationService.Results;
-
 using WMSCommon.Contexts;
-using WMSCommon.Contracts;
 using WMSCommon.Contracts.OrganizationService;
+using Wolverine;
 
 namespace OrganizationService.Repositories
 {
@@ -21,7 +14,7 @@ namespace OrganizationService.Repositories
         RoleManager<IdentityRole<Guid>> roleManager,
         SignInManager<Staff> signInManager,
         IUserContext userContext,
-        IPublishEndpoint publishEndpoint,
+        IMessageBus messageBus,
         OrganizationDbContext dbContext) : 
         IStaffRepository
     {
@@ -138,134 +131,126 @@ namespace OrganizationService.Repositories
             IEnumerable<string> roles)
         {
             await using var transaction = await dbContext.Database.BeginTransactionAsync();
-            try
+            var createResult = await userManager.CreateAsync(staff, password);
+            if (!createResult.Succeeded)
             {
-                var result = await userManager.CreateAsync(staff, password);
-                if (!result.Succeeded)
-                {
-                    UserResult failureResult = UserResult.Failure("User creation failed");
-                    failureResult.Message = string.Join(", ", result.Errors.Select(x => x.Description).ToList());
-                    return failureResult;
-                }
+                string message = string.Join("\n", createResult.Errors.Select(e => e.Description));
+                return UserResult.Failure(message);
+            }
 
-                foreach (var roleName in roles)
+            foreach (var roleName in roles)
+            {
+                if (await roleManager.RoleExistsAsync(roleName))
                 {
-                    var role = await roleManager.FindByNameAsync(roleName);
-                    if (role != null)
+                    var roleResult = await userManager.AddToRoleAsync(staff, roleName);
+                    if (!roleResult.Succeeded)
                     {
-                        await userManager.AddToRoleAsync(staff, role.Name);
+                        await transaction.RollbackAsync();
+                        var errorMessage = string.Join("\n", roleResult.Errors.Select(e => e.Description));
+                        return UserResult.Failure(errorMessage);
                     }
                 }
-
-                UserResult successResult = UserResult.Success(staff, roles);
-                successResult.Message = "User created successfully";
-
-                var staffCreated = new StaffCreated()
-                {
-                    Id = staff.Id,
-                    CompanyId = staff.CompanyId,
-                    Email = staff.Email,
-                    FirstName = staff.FirstName,
-                    LastName = staff.LastName,
-                    UserName = staff.UserName
-                };
-                await publishEndpoint.Publish(staffCreated);
-
-                await transaction.CommitAsync();
-                return successResult;
-
             }
-            catch (Exception exception)
+
+            await messageBus.PublishAsync(new StaffCreated
             {
-                await transaction.RollbackAsync();
-                return UserResult.Failure(exception.Message);
-            }
+                Id = staff.Id,
+                CompanyId = staff.CompanyId,
+                Email = staff.Email,
+                FirstName = staff.FirstName,
+                LastName = staff.LastName,
+                UserName = staff.UserName
+            });
+            
+            await transaction.CommitAsync();
+            
+            var success = UserResult.Success(staff, roles);
+            success.Message = "User created successfully";
+            return success;
         }
-
 
         public async Task<UserResult> UpdateAsync(
             Staff entity,
             IEnumerable<string> roles)
         {
             await using var transaction = await dbContext.Database.BeginTransactionAsync();
-            try
+            var staff = await userManager.FindByIdAsync(entity.Id.ToString());
+            if (staff == null)
             {
-                var staff = await userManager.FindByIdAsync(entity.Id.ToString());
-                if (staff == null)
-                {
-                    return UserResult.Failure("User not found");
-                }
-
-                staff.Email = entity.Email;
-                staff.UserName = entity.UserName;
-                staff.FirstName = entity.FirstName;
-                staff.LastName = entity.LastName;
-
-                var result = await userManager.UpdateAsync(staff);
-                if (!result.Succeeded)
-                {
-                    await transaction.RollbackAsync();
-                    string errorMessage = string.Join(", ", result.Errors.Select(x => x.Description));
-                    UserResult failureResult = UserResult.Failure(errorMessage);
-                    return failureResult;
-                }
-
-                var currentUserRoles = await userManager.GetRolesAsync(staff);
-                await userManager.RemoveFromRolesAsync(staff, currentUserRoles);
-                await userManager.AddToRolesAsync(staff, roles);
-                
-                var staffDeleted = new StaffUpdated()
-                {
-                    Id = staff.Id,
-                    CompanyId = staff.CompanyId,
-                    Email = staff.Email,
-                    FirstName = staff.FirstName,
-                    LastName = staff.LastName,
-                    UserName = staff.UserName,
-                };
-
-                await publishEndpoint.Publish(staffDeleted);
-                await transaction.CommitAsync();
-
-                return UserResult.Success(staff, roles);
+                return UserResult.Failure("User not found");
             }
-            catch (Exception exception)
+
+            staff.Email = entity.Email;
+            staff.UserName = entity.UserName;
+            staff.FirstName = entity.FirstName;
+            staff.LastName = entity.LastName;
+
+            var result = await userManager.UpdateAsync(staff);
+            if (!result.Succeeded)
             {
                 await transaction.RollbackAsync();
-                return UserResult.Failure(exception.Message);
+                string errorMessage = string.Join(", ", result.Errors.Select(x => x.Description));
+                return UserResult.Failure(errorMessage);
             }
+
+            var currentUserRoles = await userManager.GetRolesAsync(staff);
+            var removeRolesResult = await userManager.RemoveFromRolesAsync(staff, currentUserRoles);
+            if (!removeRolesResult.Succeeded)
+            {
+                await transaction.RollbackAsync();
+                string errorMessage = string.Join(", ", removeRolesResult.Errors.Select(x => x.Description));
+                return UserResult.Failure(errorMessage);
+            }
+            
+            var addRolesResult = await userManager.AddToRolesAsync(staff, roles);
+            if (!addRolesResult.Succeeded)
+            {
+                await transaction.RollbackAsync();
+                string errorMessage = string.Join(", ", addRolesResult.Errors.Select(x => x.Description));
+                return UserResult.Failure(errorMessage);
+            }
+            
+            var staffUpdated = new StaffUpdated()
+            {
+                Id = staff.Id,
+                CompanyId = staff.CompanyId,
+                Email = staff.Email,
+                FirstName = staff.FirstName,
+                LastName = staff.LastName,
+                UserName = staff.UserName,
+            };
+
+            await messageBus.PublishAsync(staffUpdated);
+            await transaction.CommitAsync();
+            return UserResult.Success(staff, roles);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<UserResult> DeleteAsync(Guid id)
         {
-            await using var transaction = await dbContext.Database.BeginTransactionAsync();
-            try
-            {
-                var staffFound = await userManager.Users
-                    .Where(s => s.CompanyId == CompanyId)
-                    .FirstOrDefaultAsync(s => s.Id == id);
-                if (staffFound == null)
-                {
-                    return false;
-                }
+            var staffFound = await userManager.Users
+                .Where(s => s.CompanyId == CompanyId)
+                .FirstOrDefaultAsync(s => s.Id == id);
 
-                var result = await userManager.DeleteAsync(staffFound);
-                if (!result.Succeeded)
-                {
-                    await transaction.RollbackAsync();
-                    return false;
-                }
-                var staffDeleted = new StaffDeleted() { Id = id };
-                await publishEndpoint.Publish(staffDeleted);
-                await transaction.CommitAsync();
-
-                return result.Succeeded;
-            }
-            catch (Exception exception)
+            if (staffFound == null)
             {
-                await transaction.RollbackAsync();
-                return false;
+                return UserResult.Failure("User not found");
             }
+
+            var result = await userManager.DeleteAsync(staffFound);
+            if (!result.Succeeded)
+            {
+                var message = string.Join(", ", result.Errors.Select(e => e.Description));
+                return UserResult.Failure(message);
+                
+            }
+
+            await messageBus.PublishAsync(new StaffDeleted
+            {
+                Id = id
+            });
+            
+            // return empty roles because we dont need it
+            return UserResult.Success(staffFound, []);
         }
     }
 }

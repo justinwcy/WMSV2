@@ -10,8 +10,6 @@ using Microsoft.EntityFrameworkCore.Query;
 
 using WMSCommon.Results;
 
-using static MassTransit.ValidationResultExtensions;
-
 namespace CatalogService.Controllers
 {
     [Authorize]
