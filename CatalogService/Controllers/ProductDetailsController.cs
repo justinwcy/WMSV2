@@ -57,7 +57,7 @@ namespace CatalogService.Controllers
             ProductDetail productDetail = productDetailUpdateDTO.ToModel();
             productDetail.Id = id;
 
-            RepositoryResult<ProductDetail> updateProductDetailResult = 
+            var updateProductDetailResult = 
                 await productDetailRepository.UpdateAsync(productDetail);
             if (!updateProductDetailResult.IsSuccess)
             {

@@ -1,5 +1,6 @@
 ﻿using CatalogService.DTOs;
 using CatalogService.Models;
+using WMSCommon.Contracts.CatalogService;
 
 namespace CatalogService.Mappings
 {
@@ -34,7 +35,7 @@ namespace CatalogService.Mappings
             };
         }
 
-        public static ProductDetailReadDTO ToReadDTO(this ProductDetail productDetail)
+        public static ProductDetailReadDTO ToReadDTO(this IProductDetail productDetail)
         {
             return new ProductDetailReadDTO()
             {
