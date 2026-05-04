@@ -1,5 +1,4 @@
 ﻿using CatalogService.Models;
-using WMSCommon.Contracts.CatalogService;
 using WMSCommon.Services;
 
 namespace CatalogService.Services

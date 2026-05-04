@@ -44,8 +44,11 @@ namespace WMSCommon.Services
             if (!result.IsSuccess)
                 return result;
 
-            var message = new TEvent();
-            message.MapFrom(result.Data);
+            var message = new TEvent
+            {
+                Data = result.Data,
+                OccurredAt = DateTime.UtcNow
+            };
 
             await messageBus.PublishAsync(message);
 

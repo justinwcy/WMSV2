@@ -38,7 +38,7 @@ namespace CatalogService.Controllers
         {
             var productDetail = productDetailCreateDTO.ToModel();
             RepositoryResult<ProductDetail> result = await productDetailService
-                .CreateAndPublishAsync<ProductDetailCreated>(productDetail);
+                .CreateAndPublishAsync<ProductDetailCreated<ProductDetail>>(productDetail);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Message);
