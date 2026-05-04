@@ -5,7 +5,7 @@ using WMSCommon.Entities;
 
 namespace CatalogService.Models
 {
-    public class ProductDetail: ITenantEntity, IProductDetail
+    public class ProductDetail: IProductDetail
     {
         public Guid Id { get; set; }
 

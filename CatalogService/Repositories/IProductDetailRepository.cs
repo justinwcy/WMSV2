@@ -4,7 +4,7 @@ using WMSCommon.Repositories;
 
 namespace CatalogService.Repositories
 {
-    public interface IProductDetailRepository : ITenantRepository<IProductDetail>
+    public interface IProductDetailRepository : ITenantRepository<ProductDetail>
     {
     }
 }

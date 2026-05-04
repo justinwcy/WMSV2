@@ -1,5 +1,7 @@
 using CatalogService.DbContexts;
+using CatalogService.Models;
 using CatalogService.Repositories;
+using CatalogService.Services;
 using Microsoft.EntityFrameworkCore;
 using WMSCommon.Contexts;
 using WMSCommon.Contracts.CatalogService;
@@ -18,7 +20,10 @@ builder.Services.AddScoped<AuditInterceptor>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
 builder.Services.AddScoped<IUserContext, UserContext>();
-builder.Services.AddScoped<ITenantRepository<IProductDetail>>(sp => 
+builder.Services.AddScoped<IProductDetailRepository, ProductDetailRepository>();
+builder.Services.AddScoped<IProductDetailService, ProductDetailService>();
+
+builder.Services.AddScoped<ITenantRepository<ProductDetail>>(sp => 
     new ProductDetailRepository(
         sp.GetRequiredService<CatalogDbContext>(),
         sp.GetRequiredService<IUserContext>()

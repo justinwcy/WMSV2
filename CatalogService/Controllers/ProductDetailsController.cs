@@ -37,7 +37,7 @@ namespace CatalogService.Controllers
         public async Task<ActionResult<ProductDetailReadDTO>> Create(ProductDetailCreateDTO productDetailCreateDTO)
         {
             var productDetail = productDetailCreateDTO.ToModel();
-            RepositoryResult<IProductDetail> result = await productDetailService
+            RepositoryResult<ProductDetail> result = await productDetailService
                 .CreateAndPublishAsync<ProductDetailCreated>(productDetail);
             if (!result.IsSuccess)
             {

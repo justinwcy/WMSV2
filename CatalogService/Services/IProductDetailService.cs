@@ -4,7 +4,7 @@ using WMSCommon.Services;
 
 namespace CatalogService.Services
 {
-    public interface IProductDetailService : IGenericSyncService<IProductDetail>
+    public interface IProductDetailService : ITenantSyncService<ProductDetail>
     {
     }
 }

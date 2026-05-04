@@ -1,9 +1,8 @@
 ﻿namespace WMSCommon.Contracts
 {
-    public interface ISyncEvent<T> where T : ISyncEntity
+    public interface ISyncEvent<out T> where T : ISyncEntity
     {
-        public T Data { get; set; }
+        public T Data { get; }
         public DateTime OccurredAt { get; set; }
-        public void MapFrom(T entity);
     }
 }

@@ -103,7 +103,13 @@ namespace WMSCommon.Repositories
             {
                 return RepositoryResult<T>.Failure($"{typeof(T).Name} not found.");
             }
-
+            // if existing entity and userContext company Id different, dont allow editing
+            if (existing.CompanyId != userContext.CompanyId)
+            {
+                return RepositoryResult<T>.Failure("Cannot edit product from different company");
+            }
+            
+            entity.CompanyId = userContext.CompanyId;
             dbContext.Entry(existing).CurrentValues.SetValues(entity);
 
             await dbContext.SaveChangesAsync();

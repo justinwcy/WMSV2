@@ -8,9 +8,9 @@ using Wolverine;
 namespace CatalogService.Services
 {
     public class ProductDetailService(
-        IGenericRepository<IProductDetail> repository,
+        ITenantRepository<ProductDetail> repository,
         IMessageBus publishEndpoint) : 
-        GenericSyncService<IProductDetail>(repository, publishEndpoint), 
+        TenantSyncService<ProductDetail>(repository, publishEndpoint), 
         IProductDetailService
     {
     }

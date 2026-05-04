@@ -6,11 +6,11 @@ using Wolverine;
 
 namespace WMSCommon.Services
 {
-    public class GenericSyncService<TEntity>(
-        IGenericRepository<TEntity> repository,
+    public class TenantSyncService<TEntity>(
+        ITenantRepository<TEntity> repository,
         IMessageBus messageBus)
-        : IGenericSyncService<TEntity>
-        where TEntity : class, ISyncEntity
+        : ITenantSyncService<TEntity>
+        where TEntity : class, ISyncEntity, ITenantEntity
     {
         // Create
         public async Task<RepositoryResult<TEntity>> CreateAndPublishAsync<TEvent>(TEntity entity)
