@@ -19,8 +19,6 @@ builder.Services.AddScoped<IInboundOrderRepository, InboundOrderRepository>();
 builder.Services.AddScoped<IInboundOrderDetailRepository, InboundOrderDetailRepository>();
 builder.Services.AddScoped<IUserContext, UserContext>();
 
-builder.Services.AddAppDbContextFactory<InboundDbContext>(builder.Configuration);
-
 builder.Services.AddControllers()
     .AddJsonOptions(o =>
     {

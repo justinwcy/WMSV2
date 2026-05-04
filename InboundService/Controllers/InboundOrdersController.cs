@@ -93,8 +93,8 @@ namespace InboundService.Controllers
         public async Task<IActionResult> Delete(
             Guid id)
         {
-            var success = await inboundOrderRepository.DeleteAsync(id);
-            if (success)
+            var result = await inboundOrderRepository.DeleteAsync(id);
+            if (result.IsSuccess)
             {
                 return NoContent();
             }
