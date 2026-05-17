@@ -133,7 +133,8 @@ namespace WMSCommon.Extensions
 
         public static IServiceCollection AddMessageBus<TContext>(
             this IServiceCollection services, 
-            IConfiguration configuration)
+            IConfiguration configuration,
+            Action<WolverineOptions>? configureExtras = null)
             where TContext : DbContext
         {
             string connectionString = configuration.GetConnectionString("Default")!;
@@ -155,6 +156,8 @@ namespace WMSCommon.Extensions
                     .AutoProvision()
                     .UseConventionalRouting();
                 options.Policies.DisableConventionalLocalRouting();
+                
+                configureExtras?.Invoke(options);
             });
             
             return services;

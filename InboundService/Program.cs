@@ -5,6 +5,8 @@ using WMSCommon.Contexts;
 
 using WMSCommon.DbContexts;
 using WMSCommon.Extensions;
+using Wolverine;
+using Wolverine.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddAppSettingsConfig();
@@ -26,9 +28,12 @@ builder.Services.AddControllers()
             .Add(new JsonStringEnumConverter());
     });
 builder.Services.AddOpenApi();
-builder.Services.AddOpenApi();
 builder.Services.AddFrontendAuthentication(builder.Configuration);
-builder.Services.AddMessageBus<InboundDbContext>(builder.Configuration);
+builder.Services.AddMessageBus<InboundDbContext>(builder.Configuration, opts =>
+{
+    opts.Discovery.IncludeAssembly(typeof(Program).Assembly);
+    opts.ListenToRabbitQueue("product-detail-sync");
+});
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();

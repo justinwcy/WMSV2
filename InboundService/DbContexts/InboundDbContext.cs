@@ -10,6 +10,7 @@ namespace InboundService.DbContexts
         public DbSet<Vendor> Vendors { get; set; }
         public DbSet<InboundOrder> InboundOrders { get; set; }
         public DbSet<InboundOrderDetail> InboundOrderDetails { get; set; }
+        public DbSet<ProductDetail> ProductDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

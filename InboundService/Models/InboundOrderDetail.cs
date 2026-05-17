@@ -11,6 +11,7 @@ namespace InboundService.Models
         public Guid InboundOrderId { get; set; }
         public InboundOrder InboundOrder { get; set; }
         public Guid ProductDetailId { get; set; }
+        public ProductDetail ProductDetail { get; set; }
         public IncomingStatus Status { get; set; }
         public int Quantity { get; set; }
     }
