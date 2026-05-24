@@ -24,5 +24,7 @@ namespace CatalogService.Models
         public Guid ProductId { get; set; }
         public Product Product { get; set; }
         public Guid CompanyId { get; set; }
+        public int Version { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

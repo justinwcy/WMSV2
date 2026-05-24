@@ -21,5 +21,7 @@ namespace InboundService.Models
         public Guid ProductId { get; set; }
         public Guid? ImageToShow { get; set; }
         public Guid CompanyId { get; set; }
+        public int Version { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

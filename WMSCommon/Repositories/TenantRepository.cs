@@ -5,30 +5,39 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 
 using WMSCommon.Contexts;
+using WMSCommon.Contracts;
 using WMSCommon.Entities;
 using WMSCommon.Results;
 
 namespace WMSCommon.Repositories
 {
-    public abstract class TenantRepository<T, TDbContext>(
-        TDbContext dbContext,
-        IUserContext userContext)
+    public abstract class TenantRepository<T, TDbContext>
         : ITenantRepository<T>
         where T : class, ITenantEntity
         where TDbContext : DbContext
     {
+        protected TDbContext DbContext { get; }
+        protected IUserContext UserContext { get; }
+
+        protected TenantRepository(TDbContext dbContext,
+            IUserContext userContext)
+        {
+            DbContext = dbContext;
+            UserContext = userContext;
+        }
+        
         public async Task<T?> GetByIdAsync(
             Guid id, 
             Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            IQueryable<T> query = dbContext.Set<T>().AsNoTracking();
+            IQueryable<T> query = DbContext.Set<T>().AsNoTracking();
             if (include != null)
             {
                 query = include(query);
             }
 
             return await query
-                .Where(e => e.CompanyId == userContext.CompanyId)
+                .Where(e => e.CompanyId == UserContext.CompanyId)
                 .FirstOrDefaultAsync(e => e.Id == id);
         }
 
@@ -41,8 +50,8 @@ namespace WMSCommon.Repositories
         {
             int skip = (Math.Max(1, pageNumber) - 1) * pageSize;
 
-            Guid companyId = userContext.CompanyId;
-            IQueryable<T> query = dbContext.Set<T>()
+            Guid companyId = UserContext.CompanyId;
+            IQueryable<T> query = DbContext.Set<T>()
                 .AsNoTracking()
                 .Where(e=> e.CompanyId == companyId);
 
@@ -67,52 +76,62 @@ namespace WMSCommon.Repositories
 
         public async Task<RepositoryResult<T>> CreateAsync(T entity)
         {
-            entity.CompanyId = userContext.CompanyId;
-            await dbContext.Set<T>().AddAsync(entity);
-            await dbContext.SaveChangesAsync();
-            dbContext.Entry(entity).State = EntityState.Detached;
+            if (entity is ISyncEntity syncEntity)
+            {
+                syncEntity.Version = 1;
+            }
+            
+            entity.CompanyId = UserContext.CompanyId;
+            await DbContext.Set<T>().AddAsync(entity);
+            await DbContext.SaveChangesAsync();
+            DbContext.Entry(entity).State = EntityState.Detached;
             return RepositoryResult<T>.Success(entity);
         }
 
         public async Task<RepositoryResult<T>> DeleteAsync(Guid id)
         {
-            var entity = await dbContext.Set<T>()
-                .FirstOrDefaultAsync(e => e.Id == id && e.CompanyId == userContext.CompanyId);
+            var entity = await DbContext.Set<T>()
+                .FirstOrDefaultAsync(e => e.Id == id && e.CompanyId == UserContext.CompanyId);
             if (entity == null)
             {
                 return RepositoryResult<T>.Failure("Entity not found.");
             }
 
-            dbContext.Set<T>().Remove(entity);
-            await dbContext.SaveChangesAsync();
+            DbContext.Set<T>().Remove(entity);
+            await DbContext.SaveChangesAsync();
             return RepositoryResult<T>.Success(entity);
         }
 
         public async Task<int> CountAsync()
         {
-            Guid companyId = userContext.CompanyId;
-            return await dbContext.Set<T>()
+            Guid companyId = UserContext.CompanyId;
+            return await DbContext.Set<T>()
                 .Where(e => e.CompanyId == companyId)
                 .CountAsync();
         }
 
         public async Task<RepositoryResult<T>> UpdateAsync(T entity)
         {
-            var existing = await dbContext.Set<T>().FindAsync(entity.Id);
+            var existing = await DbContext.Set<T>().FindAsync(entity.Id);
             if (existing == null)
             {
                 return RepositoryResult<T>.Failure($"{typeof(T).Name} not found.");
             }
-            // if existing entity and userContext company Id different, dont allow editing
-            if (existing.CompanyId != userContext.CompanyId)
+            // if existing entity and UserContext company Id different, dont allow editing
+            if (existing.CompanyId != UserContext.CompanyId)
             {
                 return RepositoryResult<T>.Failure("Cannot edit product from different company");
             }
             
-            entity.CompanyId = userContext.CompanyId;
-            dbContext.Entry(existing).CurrentValues.SetValues(entity);
+            if (entity is ISyncEntity syncEntity)
+            {
+                syncEntity.Version++;
+            }
+            
+            entity.CompanyId = UserContext.CompanyId;
+            DbContext.Entry(existing).CurrentValues.SetValues(entity);
 
-            await dbContext.SaveChangesAsync();
+            await DbContext.SaveChangesAsync();
             return RepositoryResult<T>.Success(existing);
         }
     }
