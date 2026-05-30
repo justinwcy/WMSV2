@@ -1,15 +1,15 @@
-﻿using InboundService.DbContexts;
-using InboundService.Models;
+﻿using FacilityService.DbContexts;
+using FacilityService.Models;
 using Microsoft.EntityFrameworkCore;
-using WMSCommon.Contracts.CatalogService;
+using WMSCommon.Contracts.OrganizationService;
 
-namespace InboundService.Consumers;
+namespace FacilityService.Consumers;
 
-public class ProductDetailUpdatedConsumer(InboundDbContext dbContext)
+public class StaffUpdatedConsumer(FacilityDbContext dbContext)
 {
-    public async Task Handle(ProductDetailUpdated<ProductDetail> message)
+    public async Task Handle(StaffUpdated<Staff> message)
     {
-        var existingProduct = await dbContext.ProductDetails
+        var existingProduct = await dbContext.Staffs
             .FirstOrDefaultAsync(x => x.Id == message.Data.Id);
 
         if (existingProduct != null)
@@ -18,6 +18,7 @@ public class ProductDetailUpdatedConsumer(InboundDbContext dbContext)
             {
                 return; 
             }
+            
             dbContext.Entry(existingProduct).CurrentValues.SetValues(message.Data);
             await dbContext.SaveChangesAsync();
         }

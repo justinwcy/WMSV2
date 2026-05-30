@@ -13,6 +13,5 @@
         public DimensionsDTO ProductDimensions { get; set; }
         public Guid? ImageToShow { get; set; }
         public Guid ProductId { get; set; }
-        public Guid CompanyId { get; set; }
     }
 }

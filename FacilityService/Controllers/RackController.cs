@@ -1,4 +1,6 @@
-﻿using FacilityService.Models;
+﻿using FacilityService.DTOs;
+using FacilityService.Mappings;
+using FacilityService.Models;
 using FacilityService.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,8 +20,8 @@ namespace FacilityService.Controllers
         public async Task<ActionResult<RackReadDTO>> GetRackById(Guid id)
         {
             Func<IQueryable<Rack>, IIncludableQueryable<Rack, object>> include = q => q
-                .Include(c => c.Images)
-                .Include(p => p.Details);
+                .Include(r => r.Warehouse)
+                .Include(r => r.Staffs);
 
             var rack = await rackRepository.GetByIdAsync(
                 id,
@@ -37,12 +39,12 @@ namespace FacilityService.Controllers
         public async Task<ActionResult<RackReadDTO>> Create(RackCreateDTO rackCreateDTO)
         {
             var rack = rackCreateDTO.ToModel();
-            var result = await rackRepository.CreateAsync(rack);
+            var result = await rackRepository.CreateAsync(rack, rackCreateDTO.StaffIds);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Message);
             }
-
+            
             return CreatedAtRoute(nameof(GetRackById),
                 new { Id = rack.Id }, rack.ToReadDTO());
         }
@@ -55,7 +57,7 @@ namespace FacilityService.Controllers
             Rack rack = rackUpdateDTO.ToModel();
             rack.Id = id;
 
-            RepositoryResult<Rack> updateRackResult = await rackRepository.UpdateAsync(rack);
+            RepositoryResult<Rack> updateRackResult = await rackRepository.UpdateAsync(rack, rackUpdateDTO.StaffIds);
             if (!updateRackResult.IsSuccess)
             {
                 return StatusCode(500, updateRackResult.Message);
@@ -71,8 +73,8 @@ namespace FacilityService.Controllers
             [FromQuery] int pageSize = 10)
         {
             Func<IQueryable<Rack>, IIncludableQueryable<Rack, object>> include = q => q
-                .Include(c => c.Images)
-                .Include(p => p.Details);
+                .Include(r => r.Warehouse)
+                .Include(r => r.Staffs);
 
             var racks = await rackRepository.GetAsync(
                 pageNumber, 

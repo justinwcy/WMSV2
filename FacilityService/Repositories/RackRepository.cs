@@ -2,6 +2,7 @@
 using FacilityService.Models;
 using Microsoft.EntityFrameworkCore;
 using WMSCommon.Contexts;
+using WMSCommon.Entities;
 using WMSCommon.Repositories;
 using WMSCommon.Results;
 
@@ -12,30 +13,38 @@ namespace FacilityService.Repositories
         IUserContext userContext) :
         TenantRepository<Rack, FacilityDbContext>(dbContext, userContext), IRackRepository
     {
-        public async Task<RepositoryResult<Rack>> AddStaffIdsToRackAsync(Guid rackId, IEnumerable<Guid> staffIds)
+        public async Task<RepositoryResult<Rack>> CreateAsync(Rack rack, IEnumerable<Guid> staffIds)
         {
-            var foundRack = await DbContext.Racks
-                .Include(r => r.Staffs)
-                .FirstOrDefaultAsync(r => r.Id == rackId);
-            if (foundRack == null)
-            {
-                return RepositoryResult<Rack>.Failure($"RackId = {rackId} not found");
-            }
+            rack.Version = 1;
+            rack.CompanyId = UserContext.CompanyId;
 
-            var staffToAssign = await DbContext.Staffs
-                .Where(s => staffIds.Contains(s.Id))
-                .ToListAsync();
+            await AssignEntitiesAsync(staffIds, DbContext.Staffs, rack.Staffs);
+            
+            await DbContext.Racks.AddAsync(rack);
+            await DbContext.SaveChangesAsync();
+            DbContext.Entry(rack).State = EntityState.Detached;
+            return RepositoryResult<Rack>.Success(rack);
+        }
 
-            foreach (var staff in staffToAssign)
+        public async Task<RepositoryResult<Rack>> UpdateAsync(Rack rack, IEnumerable<Guid> staffIds)
+        {
+            var query = DbContext.Racks
+                .Include(r => r.Staffs);
+            var repositoryResult = await GetAndValidateAsync(rack.Id, query);
+            if (!repositoryResult.IsSuccess)
             {
-                if (foundRack.Staffs.All(x => x.Id != staff.Id))
-                {
-                    foundRack.Staffs.Add(staff);
-                }
+                return repositoryResult;
             }
             
+            var existing = repositoryResult.Data!;
+            existing.Version++;
+            
+            // update the existing rack
+            DbContext.Entry(existing).CurrentValues.SetValues(rack);
+            await AddIdsToCollectionAsync(existing.Staffs, staffIds, DbContext.Staffs);
+            
             await DbContext.SaveChangesAsync();
-            return RepositoryResult<Rack>.Success(foundRack);
+            return RepositoryResult<Rack>.Success(existing);
         }
     }
 }

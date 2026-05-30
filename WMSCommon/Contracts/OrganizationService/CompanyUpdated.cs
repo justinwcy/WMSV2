@@ -1,9 +1,8 @@
 ﻿namespace WMSCommon.Contracts.OrganizationService
 {
-    public class CompanyUpdated
+    public class CompanyUpdated<T> : ISyncEvent<T> where T : ISyncEntity
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public DateTime TimeStamp { get; set; }
+        public T Data { get; set; }
+        public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
     }
 }

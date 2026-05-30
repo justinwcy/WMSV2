@@ -1,7 +1,8 @@
 ﻿namespace WMSCommon.Contracts.OrganizationService
 {
-    public class StaffDeleted
+    public class StaffDeleted<T> : ISyncEvent<T> where T : ISyncEntity
     {
-        public required Guid Id { get; set; }
+        public T Data { get; set; }
+        public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
     }
 }

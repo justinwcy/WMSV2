@@ -6,7 +6,7 @@ namespace FacilityService.Repositories
 {
     public interface IStaffRepository : ITenantRepository<Staff>
     {
-        public Task<RepositoryResult<Staff>> AddRackIdsToStaffAsync(Guid staffId, IEnumerable<Guid> rackIds);
-        public Task<RepositoryResult<Staff>> AddWarehouseIdsToStaffAsync(Guid staffId, IEnumerable<Guid> warehouseIds);
+        public Task<RepositoryResult<Staff>> CreateAsync(Staff staff, IEnumerable<Guid> rackIds);
+        public Task<RepositoryResult<Staff>> UpdateAsync(Staff staff, IEnumerable<Guid> rackIds);
     }
 }

@@ -152,14 +152,9 @@ namespace OrganizationService.Repositories
                 }
             }
 
-            await messageBus.PublishAsync(new StaffCreated
+            await messageBus.PublishAsync(new StaffCreated<Staff>
             {
-                Id = staff.Id,
-                CompanyId = staff.CompanyId,
-                Email = staff.Email,
-                FirstName = staff.FirstName,
-                LastName = staff.LastName,
-                UserName = staff.UserName
+                Data = staff,
             });
             
             await transaction.CommitAsync();
@@ -210,14 +205,9 @@ namespace OrganizationService.Repositories
                 return UserResult.Failure(errorMessage);
             }
             
-            var staffUpdated = new StaffUpdated()
+            var staffUpdated = new StaffUpdated<Staff>
             {
-                Id = staff.Id,
-                CompanyId = staff.CompanyId,
-                Email = staff.Email,
-                FirstName = staff.FirstName,
-                LastName = staff.LastName,
-                UserName = staff.UserName,
+                Data = staff,
             };
 
             await messageBus.PublishAsync(staffUpdated);
@@ -244,9 +234,9 @@ namespace OrganizationService.Repositories
                 
             }
 
-            await messageBus.PublishAsync(new StaffDeleted
+            await messageBus.PublishAsync(new StaffDeleted<Staff>
             {
-                Id = id
+                Data = staffFound,
             });
             
             // return empty roles because we dont need it

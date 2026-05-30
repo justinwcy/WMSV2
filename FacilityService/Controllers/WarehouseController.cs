@@ -1,4 +1,6 @@
-﻿using FacilityService.Models;
+﻿using FacilityService.DTOs;
+using FacilityService.Mappings;
+using FacilityService.Models;
 using FacilityService.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,8 +20,8 @@ namespace FacilityService.Controllers
         public async Task<ActionResult<WarehouseReadDTO>> GetWarehouseById(Guid id)
         {
             Func<IQueryable<Warehouse>, IIncludableQueryable<Warehouse, object>> include = q => q
-                .Include(c => c.Images)
-                .Include(p => p.Details);
+                .Include(w => w.Racks)
+                .Include(w => w.Staffs);
 
             var warehouse = await warehouseRepository.GetByIdAsync(
                 id,
@@ -37,7 +39,10 @@ namespace FacilityService.Controllers
         public async Task<ActionResult<WarehouseReadDTO>> Create(WarehouseCreateDTO warehouseCreateDTO)
         {
             var warehouse = warehouseCreateDTO.ToModel();
-            var result = await warehouseRepository.CreateAsync(warehouse);
+            var result = await warehouseRepository.CreateAsync(
+                warehouse, 
+                warehouseCreateDTO.RackIds, 
+                warehouseCreateDTO.StaffIds);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Message);
@@ -71,8 +76,8 @@ namespace FacilityService.Controllers
             [FromQuery] int pageSize = 10)
         {
             Func<IQueryable<Warehouse>, IIncludableQueryable<Warehouse, object>> include = q => q
-                .Include(c => c.Images)
-                .Include(p => p.Details);
+                .Include(w => w.Racks)
+                .Include(w => w.Staffs);
 
             var warehouses = await warehouseRepository.GetAsync(
                 pageNumber, 

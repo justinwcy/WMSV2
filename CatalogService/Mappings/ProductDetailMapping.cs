@@ -25,7 +25,6 @@ namespace CatalogService.Mappings
             return new ProductDetail()
             {
                 ProductId = productDetailUpdateDTO.ProductId,
-                CompanyId = productDetailUpdateDTO.CompanyId,
                 ImageToShow = productDetailUpdateDTO.ImageToShow,
                 Name = productDetailUpdateDTO.Name,
                 Price = productDetailUpdateDTO.Price,

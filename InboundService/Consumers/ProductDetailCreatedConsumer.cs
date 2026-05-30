@@ -25,6 +25,8 @@ public class ProductDetailCreatedConsumer(InboundDbContext dbContext)
                 ImageToShow =  message.Data.ImageToShow,
                 Sku =  message.Data.Sku,
                 WeightKg =  message.Data.WeightKg,
+                IsDeleted = false,
+                Version = 0,
             });
 
             await dbContext.SaveChangesAsync();

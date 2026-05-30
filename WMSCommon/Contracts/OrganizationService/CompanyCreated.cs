@@ -1,8 +1,8 @@
 ﻿namespace WMSCommon.Contracts.OrganizationService
 {
-    public class CompanyCreated
+    public class CompanyCreated<T> : ISyncEvent<T> where T : ISyncEntity
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
+        public T Data { get; set; }
+        public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
     }
 }

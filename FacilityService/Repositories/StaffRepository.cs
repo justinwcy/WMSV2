@@ -2,6 +2,7 @@
 using FacilityService.Models;
 using Microsoft.EntityFrameworkCore;
 using WMSCommon.Contexts;
+using WMSCommon.Entities;
 using WMSCommon.Repositories;
 using WMSCommon.Results;
 
@@ -12,56 +13,38 @@ namespace FacilityService.Repositories
         IUserContext userContext) :
         TenantRepository<Staff, FacilityDbContext>(dbContext, userContext), IStaffRepository
     {
-        public async Task<RepositoryResult<Staff>> AddRackIdsToStaffAsync(Guid staffId, IEnumerable<Guid> rackIds)
+        public async Task<RepositoryResult<Staff>> CreateAsync(Staff staff, IEnumerable<Guid> rackIds)
         {
-            var foundStaff = await DbContext.Staffs
-                .Include(s => s.Racks)
-                .FirstOrDefaultAsync(s => s.Id == staffId);
-            if (foundStaff == null)
-            {
-                return RepositoryResult<Staff>.Failure($"StaffId = {staffId} not found");
-            }
-
-            var rackToAssign = await DbContext.Racks
-                .Where(r => rackIds.Contains(r.Id))
-                .ToListAsync();
-
-            foreach (var rack in rackToAssign)
-            {
-                if (foundStaff.Racks.All(x => x.Id != rack.Id))
-                {
-                    foundStaff.Racks.Add(rack);
-                }
-            }
+            staff.Version = 1;
+            staff.CompanyId = UserContext.CompanyId;
             
+            await AssignEntitiesAsync(rackIds, DbContext.Racks, staff.Racks);
+           
+            await DbContext.Staffs.AddAsync(staff);
             await DbContext.SaveChangesAsync();
-            return RepositoryResult<Staff>.Success(foundStaff);
+            DbContext.Entry(staff).State = EntityState.Detached;
+            return RepositoryResult<Staff>.Success(staff);
         }
-
-        public async Task<RepositoryResult<Staff>> AddWarehouseIdsToStaffAsync(Guid staffId, IEnumerable<Guid> warehouseIds)
+        
+        public async Task<RepositoryResult<Staff>> UpdateAsync(Staff staff, IEnumerable<Guid> rackIds)
         {
-            var foundStaff = await DbContext.Staffs
-                .Include(s => s.Warehouses)
-                .FirstOrDefaultAsync(s => s.Id == staffId);
-            if (foundStaff == null)
+            var query = DbContext.Staffs
+                .Include(s => s.Racks);
+            var repositoryResult = await GetAndValidateAsync(staff.Id, query);
+            if (!repositoryResult.IsSuccess)
             {
-                return RepositoryResult<Staff>.Failure($"StaffId = {staffId} not found");
-            }
-
-            var warehouseToAssign = await DbContext.Warehouses
-                .Where(w => warehouseIds.Contains(w.Id))
-                .ToListAsync();
-
-            foreach (var warehouse in warehouseToAssign)
-            {
-                if (foundStaff.Warehouses.All(x => x.Id != warehouse.Id))
-                {
-                    foundStaff.Warehouses.Add(warehouse);
-                }
+                return repositoryResult;
             }
             
+            var existing = repositoryResult.Data!;
+            existing.Version++;
+            
+            // update the existing rack
+            DbContext.Entry(existing).CurrentValues.SetValues(staff);
+            await AddIdsToCollectionAsync(existing.Racks, rackIds, DbContext.Racks);
+            
             await DbContext.SaveChangesAsync();
-            return RepositoryResult<Staff>.Success(foundStaff);
+            return RepositoryResult<Staff>.Success(existing);
         }
     }
 }
