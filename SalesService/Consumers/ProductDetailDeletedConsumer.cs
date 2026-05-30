@@ -1,11 +1,11 @@
-﻿using InboundService.DbContexts;
-using InboundService.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using SalesService.DbContexts;
+using SalesService.Models;
 using WMSCommon.Contracts.CatalogService;
 
-namespace InboundService.Consumers;
+namespace SalesService.Consumers;
 
-public class ProductDetailDeletedConsumer(InboundDbContext dbContext)
+public class ProductDetailDeletedConsumer(SalesDbContext dbContext)
 {
     public async Task Handle(ProductDetailDeleted<ProductDetail> message)
     {

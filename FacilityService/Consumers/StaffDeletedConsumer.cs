@@ -15,11 +15,6 @@ public class StaffDeletedConsumer(FacilityDbContext dbContext)
 
         if (existingProduct != null)
         {
-            if (message.Data.Version <= existingProduct.Version)
-            {
-                return; 
-            }
-            
             existingProduct.IsDeleted = true;
             existingProduct.Version = message.Data.Version;
             

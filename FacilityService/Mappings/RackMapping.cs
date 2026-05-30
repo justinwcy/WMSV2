@@ -47,6 +47,7 @@ namespace FacilityService.Mappings
                 WeightKg = rack.WeightKg,
                 WarehouseId = rack.WarehouseId,
                 StaffIds = rack.Staffs.Select(x => x.Id).ToList(),
+                CompanyId = rack.CompanyId,
             };
         }
     }

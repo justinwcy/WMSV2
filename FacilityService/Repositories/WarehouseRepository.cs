@@ -2,7 +2,6 @@
 using FacilityService.Models;
 using Microsoft.EntityFrameworkCore;
 using WMSCommon.Contexts;
-using WMSCommon.Entities;
 using WMSCommon.Repositories;
 using WMSCommon.Results;
 
@@ -18,11 +17,11 @@ namespace FacilityService.Repositories
             IEnumerable<Guid> rackIds, 
             IEnumerable<Guid> staffIds)
         {
-            warehouse.Version = 1;
+            warehouse.Version = 0;
             warehouse.CompanyId = UserContext.CompanyId;
             
-            await AssignEntitiesAsync(rackIds, DbContext.Staffs, warehouse.Staffs);
-            await AssignEntitiesAsync(staffIds, DbContext.Racks, warehouse.Racks);
+            await AssignEntitiesAsync(staffIds, DbContext.Staffs, warehouse.Staffs);
+            await AssignEntitiesAsync(rackIds, DbContext.Racks, warehouse.Racks);
             
             await DbContext.Warehouses.AddAsync(warehouse);
             await DbContext.SaveChangesAsync();
@@ -42,10 +41,12 @@ namespace FacilityService.Repositories
             }
             
             var existing = repositoryResult.Data!;
-            existing.Version++;
+            var versionNumber = existing.Version;
             
             // update the existing rack
             DbContext.Entry(existing).CurrentValues.SetValues(warehouse);
+            existing.Version = versionNumber + 1;
+            existing.CompanyId = UserContext.CompanyId;
             await AddIdsToCollectionAsync(existing.Racks, rackIds, DbContext.Racks);
             await AddIdsToCollectionAsync(existing.Staffs, staffIds, DbContext.Staffs);
             

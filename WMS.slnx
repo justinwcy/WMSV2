@@ -3,5 +3,6 @@
   <Project Path="FacilityService/FacilityService.csproj" />
   <Project Path="InboundService/InboundService.csproj" Id="ea83a8a5-57fd-4fb7-964e-8c086eee862b" />
   <Project Path="OrganizationService/OrganizationService.csproj" Id="0e810355-f49a-437e-853f-cb33a2d40709" />
+  <Project Path="SalesService/SalesService.csproj" />
   <Project Path="WMSCommon/WMSCommon.csproj" />
 </Solution>

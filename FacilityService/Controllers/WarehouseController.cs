@@ -60,7 +60,10 @@ namespace FacilityService.Controllers
             Warehouse warehouse = warehouseUpdateDTO.ToModel();
             warehouse.Id = id;
 
-            RepositoryResult<Warehouse> updateWarehouseResult = await warehouseRepository.UpdateAsync(warehouse);
+            RepositoryResult<Warehouse> updateWarehouseResult = await warehouseRepository.UpdateAsync(
+                warehouse, 
+                warehouseUpdateDTO.RackIds, 
+                warehouseUpdateDTO.StaffIds);
             if (!updateWarehouseResult.IsSuccess)
             {
                 return StatusCode(500, updateWarehouseResult.Message);

@@ -78,7 +78,7 @@ namespace WMSCommon.Repositories
         {
             if (entity is ISyncEntity syncEntity)
             {
-                syncEntity.Version = 1;
+                syncEntity.Version = 0;
             }
             
             entity.CompanyId = UserContext.CompanyId;
@@ -122,15 +122,15 @@ namespace WMSCommon.Repositories
             {
                 return RepositoryResult<T>.Failure($"Cannot edit {typeof(T).Name} from different company");
             }
+            entity.CompanyId = UserContext.CompanyId;
             
-            if (entity is ISyncEntity syncEntity)
+            if (existing is ISyncEntity existingSyncEntity && entity is ISyncEntity syncEntity)
             {
-                syncEntity.Version++;
+                var versionNumber = existingSyncEntity.Version;
+                syncEntity.Version = versionNumber + 1;
             }
             
-            entity.CompanyId = UserContext.CompanyId;
             DbContext.Entry(existing).CurrentValues.SetValues(entity);
-
             await DbContext.SaveChangesAsync();
             return RepositoryResult<T>.Success(existing);
         }

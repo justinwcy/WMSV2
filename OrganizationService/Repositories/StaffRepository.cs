@@ -204,7 +204,8 @@ namespace OrganizationService.Repositories
                 string errorMessage = string.Join(", ", addRolesResult.Errors.Select(x => x.Description));
                 return UserResult.Failure(errorMessage);
             }
-            
+
+            staff.Version++;
             var staffUpdated = new StaffUpdated<Staff>
             {
                 Data = staff,

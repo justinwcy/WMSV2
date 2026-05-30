@@ -5,7 +5,6 @@ using WMSCommon.Contexts;
 
 using WMSCommon.DbContexts;
 using WMSCommon.Extensions;
-using Wolverine;
 using Wolverine.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);

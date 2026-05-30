@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
-using FacilityService.DbContexts;
-using FacilityService.Repositories;
+using SalesService.DbContexts;
+using SalesService.Repositories;
 using WMSCommon.Contexts;
 
 using WMSCommon.DbContexts;
@@ -15,9 +15,8 @@ builder.Services.AddControllers();
 
 // Add services to the container.
 builder.Services.AddScoped<AuditInterceptor>();
-builder.Services.AddScoped<IRackRepository, RackRepository>();
-builder.Services.AddScoped<IStaffRepository, StaffRepository>();
-builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
+builder.Services.AddScoped<IShopRepository, ShopRepository>();
+builder.Services.AddScoped<IProductDetailRepository, ProductDetailRepository>();
 builder.Services.AddScoped<IUserContext, UserContext>();
 
 builder.Services.AddControllers()
@@ -28,16 +27,16 @@ builder.Services.AddControllers()
     });
 builder.Services.AddOpenApi();
 builder.Services.AddFrontendAuthentication(builder.Configuration);
-builder.Services.AddMessageBus<FacilityDbContext>(builder.Configuration, opts =>
+builder.Services.AddMessageBus<SalesDbContext>(builder.Configuration, opts =>
 {
     opts.Discovery.IncludeAssembly(typeof(Program).Assembly);
-    opts.ListenToRabbitQueue("staff-sync");
+    opts.ListenToRabbitQueue("product-detail-sync");
 });
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 app.SetupMiddleware();
-await app.ApplyMigrations<FacilityDbContext>("Facility Service");
+await app.ApplyMigrations<SalesDbContext>("Sales Service");
 
 
 app.Run();

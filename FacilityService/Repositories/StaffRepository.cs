@@ -15,7 +15,7 @@ namespace FacilityService.Repositories
     {
         public async Task<RepositoryResult<Staff>> CreateAsync(Staff staff, IEnumerable<Guid> rackIds)
         {
-            staff.Version = 1;
+            staff.Version = 0;
             staff.CompanyId = UserContext.CompanyId;
             
             await AssignEntitiesAsync(rackIds, DbContext.Racks, staff.Racks);
@@ -37,10 +37,12 @@ namespace FacilityService.Repositories
             }
             
             var existing = repositoryResult.Data!;
-            existing.Version++;
+            var versionNumber = existing.Version;
             
             // update the existing rack
             DbContext.Entry(existing).CurrentValues.SetValues(staff);
+            existing.Version = versionNumber + 1;
+            existing.CompanyId = UserContext.CompanyId;
             await AddIdsToCollectionAsync(existing.Racks, rackIds, DbContext.Racks);
             
             await DbContext.SaveChangesAsync();
