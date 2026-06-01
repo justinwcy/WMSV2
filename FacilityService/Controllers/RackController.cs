@@ -2,10 +2,12 @@
 using FacilityService.Mappings;
 using FacilityService.Models;
 using FacilityService.Repositories;
+using FacilityService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using WMSCommon.Contracts.FacilityService;
 using WMSCommon.Results;
 
 namespace FacilityService.Controllers
@@ -14,7 +16,8 @@ namespace FacilityService.Controllers
     [ApiController]
     [Route("api/v1/FacilityService/[controller]")]
     public class RackController(
-        IRackRepository rackRepository) : ControllerBase
+        IRackRepository rackRepository,
+        IRackService rackService) : ControllerBase
     {
         [HttpGet("{id:guid}", Name = "GetRackById")]
         public async Task<ActionResult<RackReadDTO>> GetRackById(Guid id)
@@ -39,7 +42,7 @@ namespace FacilityService.Controllers
         public async Task<ActionResult<RackReadDTO>> Create(RackCreateDTO rackCreateDTO)
         {
             var rack = rackCreateDTO.ToModel();
-            var result = await rackRepository.CreateAsync(rack, rackCreateDTO.StaffIds);
+            var result = await rackService.CreateAndPublishAsync(rack, rackCreateDTO.StaffIds);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Message);
@@ -56,14 +59,13 @@ namespace FacilityService.Controllers
         {
             Rack rack = rackUpdateDTO.ToModel();
             rack.Id = id;
-
-            RepositoryResult<Rack> updateRackResult = await rackRepository.UpdateAsync(rack, rackUpdateDTO.StaffIds);
-            if (!updateRackResult.IsSuccess)
+            var result = await rackService.CreateAndPublishAsync(rack, rackUpdateDTO.StaffIds);
+            if (!result.IsSuccess)
             {
-                return StatusCode(500, updateRackResult.Message);
+                return StatusCode(500, result.Message);
             }
 
-            RackReadDTO rackReadDTO = updateRackResult.Data.ToReadDTO();
+            RackReadDTO rackReadDTO = result.Data.ToReadDTO();
             return Ok(rackReadDTO);
         }
 
@@ -99,7 +101,7 @@ namespace FacilityService.Controllers
         public async Task<IActionResult> Delete(
             Guid id)
         {
-            var result = await rackRepository.DeleteAsync(id);
+            var result = await rackService.DeleteAndPublishAsync<RackDeleted<Rack>>(id);
             if (result.IsSuccess)
             {
                 return NoContent();

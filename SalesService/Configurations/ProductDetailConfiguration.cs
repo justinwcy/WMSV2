@@ -9,6 +9,8 @@ namespace SalesService.Configurations
         public void Configure(EntityTypeBuilder<ProductDetail> builder)
         {
             builder.HasKey(pd => pd.Id);
+            builder.OwnsOne(p => p.ProductDimensions);
+
             builder.HasOne(pd => pd.Shop)
                 .WithMany(s => s.ProductDetails)
                 .HasForeignKey(pd => pd.ShopId)

@@ -58,7 +58,7 @@ namespace CatalogService.Controllers
             productDetail.Id = id;
 
             var updateProductDetailResult = 
-                await productDetailRepository.UpdateAsync(productDetail);
+                await productDetailService.UpdateAndPublishAsync<ProductDetailUpdated<ProductDetail>>(productDetail);
             if (!updateProductDetailResult.IsSuccess)
             {
                 return StatusCode(500, updateProductDetailResult.Message);
@@ -97,7 +97,7 @@ namespace CatalogService.Controllers
         public async Task<IActionResult> Delete(
             Guid id)
         {
-            var result = await productDetailRepository.DeleteAsync(id);
+            var result = await productDetailService.DeleteAndPublishAsync<ProductDetailDeleted<ProductDetail>>(id);
             if (result.IsSuccess)
             {
                 return NoContent();

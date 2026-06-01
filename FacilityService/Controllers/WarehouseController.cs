@@ -2,10 +2,12 @@
 using FacilityService.Mappings;
 using FacilityService.Models;
 using FacilityService.Repositories;
+using FacilityService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using WMSCommon.Contracts.FacilityService;
 using WMSCommon.Results;
 
 namespace FacilityService.Controllers
@@ -14,7 +16,8 @@ namespace FacilityService.Controllers
     [ApiController]
     [Route("api/v1/FacilityService/[controller]")]
     public class WarehouseController(
-        IWarehouseRepository warehouseRepository) : ControllerBase
+        IWarehouseRepository warehouseRepository,
+        IWarehouseService warehouseService) : ControllerBase
     {
         [HttpGet("{id:guid}", Name = "GetWarehouseById")]
         public async Task<ActionResult<WarehouseReadDTO>> GetWarehouseById(Guid id)
@@ -39,10 +42,11 @@ namespace FacilityService.Controllers
         public async Task<ActionResult<WarehouseReadDTO>> Create(WarehouseCreateDTO warehouseCreateDTO)
         {
             var warehouse = warehouseCreateDTO.ToModel();
-            var result = await warehouseRepository.CreateAsync(
-                warehouse, 
-                warehouseCreateDTO.RackIds, 
-                warehouseCreateDTO.StaffIds);
+            RepositoryResult<Warehouse> result = await warehouseService
+                .CreateAndPublishAsync(
+                    warehouse,
+                    warehouseCreateDTO.RackIds, 
+                    warehouseCreateDTO.StaffIds);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Message);
@@ -60,16 +64,17 @@ namespace FacilityService.Controllers
             Warehouse warehouse = warehouseUpdateDTO.ToModel();
             warehouse.Id = id;
 
-            RepositoryResult<Warehouse> updateWarehouseResult = await warehouseRepository.UpdateAsync(
-                warehouse, 
-                warehouseUpdateDTO.RackIds, 
-                warehouseUpdateDTO.StaffIds);
-            if (!updateWarehouseResult.IsSuccess)
+            RepositoryResult<Warehouse> result = await warehouseService
+                .UpdateAndPublishAsync(
+                    warehouse,
+                    warehouseUpdateDTO.RackIds, 
+                    warehouseUpdateDTO.StaffIds);
+            if (!result.IsSuccess)
             {
-                return StatusCode(500, updateWarehouseResult.Message);
+                return StatusCode(500, result.Message);
             }
 
-            WarehouseReadDTO warehouseReadDTO = updateWarehouseResult.Data.ToReadDTO();
+            WarehouseReadDTO warehouseReadDTO = result.Data.ToReadDTO();
             return Ok(warehouseReadDTO);
         }
 
@@ -105,7 +110,7 @@ namespace FacilityService.Controllers
         public async Task<IActionResult> Delete(
             Guid id)
         {
-            var result = await warehouseRepository.DeleteAsync(id);
+            var result = await warehouseService.DeleteAndPublishAsync<WarehouseDeleted<Warehouse>>(id);
             if (result.IsSuccess)
             {
                 return NoContent();

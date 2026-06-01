@@ -16,6 +16,6 @@ public class ProductDetail : IProductDetail
     public Dimensions ProductDimensions { get; set; }
     public Guid ProductId { get; set; }
     public Guid? ImageToShow { get; set; }
-    public Shop Shop { get; set; }
-    public Guid ShopId { get; set; }
+    public Shop? Shop { get; set; }
+    public Guid? ShopId { get; set; }
 }

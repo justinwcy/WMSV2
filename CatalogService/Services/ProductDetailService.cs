@@ -9,8 +9,8 @@ namespace CatalogService.Services
 {
     public class ProductDetailService(
         ITenantRepository<ProductDetail> repository,
-        IMessageBus publishEndpoint) : 
-        TenantSyncService<ProductDetail>(repository, publishEndpoint), 
+        IMessageContext messageContext) : 
+        TenantSyncService<ProductDetail>(repository, messageContext), 
         IProductDetailService
     {
     }

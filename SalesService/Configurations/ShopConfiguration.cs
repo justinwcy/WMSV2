@@ -12,7 +12,7 @@ namespace SalesService.Configurations
             builder.HasMany(s => s.ProductDetails)
                 .WithOne(d => d.Shop)
                 .HasForeignKey(d => d.ShopId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .IsRequired(false);
 
             builder.HasIndex(s => new
             {

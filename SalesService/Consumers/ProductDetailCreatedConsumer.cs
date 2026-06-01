@@ -27,6 +27,7 @@ public class ProductDetailCreatedConsumer(SalesDbContext dbContext)
                 WeightKg =  message.Data.WeightKg,
                 IsDeleted = false,
                 Version = 0,
+                
             });
 
             await dbContext.SaveChangesAsync();

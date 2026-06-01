@@ -8,7 +8,7 @@ namespace WMSCommon.Services
 {
     public class TenantSyncService<TEntity>(
         ITenantRepository<TEntity> repository,
-        IMessageBus messageBus)
+        IMessageContext messageContext)
         : ITenantSyncService<TEntity>
         where TEntity : class, ISyncEntity, ITenantEntity
     {
@@ -36,7 +36,7 @@ namespace WMSCommon.Services
                 async () => await repository.DeleteAsync(id));
         }
 
-        private async Task<RepositoryResult<TEntity>> ExecuteWithTransaction<TEvent>(
+        protected async Task<RepositoryResult<TEntity>> ExecuteWithTransaction<TEvent>(
             Func<Task<RepositoryResult<TEntity>>> repositoryAction)
             where TEvent : ISyncEvent<TEntity>, new()
         {
@@ -50,8 +50,7 @@ namespace WMSCommon.Services
                 OccurredAt = DateTime.UtcNow
             };
 
-            await messageBus.PublishAsync(message);
-
+            await messageContext.PublishAsync(message);
             return result;
         }
     }
