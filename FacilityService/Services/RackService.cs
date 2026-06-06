@@ -22,7 +22,7 @@ namespace FacilityService.Services
         public async Task<RepositoryResult<Rack>> UpdateAndPublishAsync(Rack entity, IEnumerable<Guid> staffIds)
         {
             return await ExecuteWithTransaction<RackUpdated<Rack>>(
-                async () => await repository.CreateAsync(entity, staffIds));
+                async () => await repository.UpdateAsync(entity, staffIds));
         }
     }
 }

@@ -15,6 +15,7 @@ using WMSCommon.DbContexts;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
 using Wolverine.RabbitMQ;
+using Wolverine.RabbitMQ.Internal;
 using Wolverine.SqlServer;
 using Wolverine.Transports;
 
@@ -153,7 +154,31 @@ namespace WMSCommon.Extensions
                         c.Password = configuration[Config.MQPassword]!;
                     })
                     .AutoProvision()
-                    .UseConventionalRouting(NamingSource.FromHandlerType);
+                    // Configure the conventions to use Fanout instead of Topic
+                    .UseConventionalRouting(with =>
+                    {
+                        with.UseNaming(NamingSource.FromMessageType);
+                        
+                        // 2. Intercept and rewrite the Queue names dynamically per service
+                        // 'type' represents the incoming message type class (e.g., StaffCreated)
+                        with.QueueNameForListener(type =>
+                        {
+                            // Dynamically extract the running service project name (e.g., sales-service)
+                            var serviceName = System.Reflection.Assembly.GetEntryAssembly()?
+                                .GetName().Name?.ToLower() ?? "service";
+
+                            // Lowercase the message name to fit kebab-case standards
+                            var cleanMessageName = type.Name.ToLower();
+
+                            // Outputs a distinct queue name per app (e.g., "sales-service-staffcreated")
+                            return $"{serviceName}-{cleanMessageName}";
+                        });
+                        // This forces all automatically generated exchanges to be Fanout types
+                        with.ConfigureSending((exchange, messageRoutingContext) =>
+                        {
+                            exchange.ExchangeType(ExchangeType.Fanout);
+                        });
+                    });
                 options.Policies.DisableConventionalLocalRouting();
                 configureExtras?.Invoke(options);
             });

@@ -38,7 +38,7 @@ namespace SalesService.Controllers
         public async Task<ActionResult<ShopReadDTO>> Create(ShopCreateDTO shopCreateDTO)
         {
             var shop = shopCreateDTO.ToModel();
-            var result = await shopRepository.CreateAsync(shop);
+            var result = await shopRepository.CreateAsync(shop, shopCreateDTO.ProductDetailIds);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Message);
@@ -55,7 +55,7 @@ namespace SalesService.Controllers
         {
             Shop shop = shopUpdateDTO.ToModel();
             shop.Id = id;
-            var result = await shopRepository.CreateAsync(shop);
+            var result = await shopRepository.UpdateAsync(shop, shopUpdateDTO.ProductDetailIds);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Message);
