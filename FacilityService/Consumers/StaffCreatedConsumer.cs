@@ -1,7 +1,6 @@
 ﻿using FacilityService.DbContexts;
 using FacilityService.Models;
 using Microsoft.EntityFrameworkCore;
-using WMSCommon.Contracts.CatalogService;
 using WMSCommon.Contracts.OrganizationService;
 
 namespace FacilityService.Consumers;
@@ -19,8 +18,8 @@ public class StaffCreatedConsumer(FacilityDbContext dbContext)
             {
                 CompanyId =  message.Data.CompanyId,
                 Id =  message.Data.Id,
-                Racks = message.Data.Racks,
-                Warehouses = message.Data.Warehouses,
+                Racks = new List<Rack>(),
+                Warehouses = new List<Warehouse>(),
                 Email = message.Data.Email,
                 FirstName = message.Data.FirstName,
                 LastName = message.Data.LastName,

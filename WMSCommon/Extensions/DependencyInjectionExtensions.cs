@@ -1,7 +1,5 @@
 ﻿using JasperFx.CodeGeneration;
 using JasperFx.Resources;
-using MassTransit;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -157,7 +155,6 @@ namespace WMSCommon.Extensions
                     .AutoProvision()
                     .UseConventionalRouting(NamingSource.FromHandlerType);
                 options.Policies.DisableConventionalLocalRouting();
-                
                 configureExtras?.Invoke(options);
             });
             

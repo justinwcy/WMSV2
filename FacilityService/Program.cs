@@ -31,7 +31,6 @@ builder.Services.AddFrontendAuthentication(builder.Configuration);
 builder.Services.AddMessageBus<FacilityDbContext>(builder.Configuration, opts =>
 {
     opts.Discovery.IncludeAssembly(typeof(Program).Assembly);
-    opts.ListenToRabbitQueue("staff-sync");
 });
 builder.Services.AddHttpContextAccessor();
 

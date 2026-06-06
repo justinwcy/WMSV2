@@ -31,7 +31,6 @@ builder.Services.AddFrontendAuthentication(builder.Configuration);
 builder.Services.AddMessageBus<InboundDbContext>(builder.Configuration, opts =>
 {
     opts.Discovery.IncludeAssembly(typeof(Program).Assembly);
-    opts.ListenToRabbitQueue("product-detail-sync");
 });
 builder.Services.AddHttpContextAccessor();
 
