@@ -18,6 +18,7 @@ using Wolverine;
 using Wolverine.EntityFrameworkCore;
 using Wolverine.RabbitMQ;
 using Wolverine.SqlServer;
+using Wolverine.Transports;
 
 namespace WMSCommon.Extensions
 {
@@ -154,7 +155,7 @@ namespace WMSCommon.Extensions
                         c.Password = configuration[Config.MQPassword]!;
                     })
                     .AutoProvision()
-                    .UseConventionalRouting();
+                    .UseConventionalRouting(NamingSource.FromHandlerType);
                 options.Policies.DisableConventionalLocalRouting();
                 
                 configureExtras?.Invoke(options);

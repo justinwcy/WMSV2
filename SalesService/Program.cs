@@ -38,5 +38,4 @@ var app = builder.Build();
 app.SetupMiddleware();
 await app.ApplyMigrations<SalesDbContext>("Sales Service");
 
-
 app.Run();
