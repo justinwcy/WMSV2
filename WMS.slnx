@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="CatalogService/CatalogService.csproj" Id="1b3ea3dc-2e65-4f10-b5d3-5bf5826151dd" />
   <Project Path="FacilityService/FacilityService.csproj" />
+  <Project Path="FulfilmentService/FulfilmentService.csproj" />
   <Project Path="InboundService/InboundService.csproj" Id="ea83a8a5-57fd-4fb7-964e-8c086eee862b" />
   <Project Path="OrganizationService/OrganizationService.csproj" Id="0e810355-f49a-437e-853f-cb33a2d40709" />
   <Project Path="SalesService/SalesService.csproj" />

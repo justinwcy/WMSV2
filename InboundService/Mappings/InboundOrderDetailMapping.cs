@@ -37,6 +37,7 @@ namespace InboundService.Mappings
                 Quantity = inboundOrderDetail.Quantity,
                 ProductDetailId = inboundOrderDetail.ProductDetailId,
                 InboundOrderId = inboundOrderDetail.InboundOrderId,
+                ProductDetail = inboundOrderDetail.ProductDetail.ToReadDTO(),
             };
         }
     }

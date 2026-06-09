@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
-using InboundService.DbContexts;
-using InboundService.Repositories;
+using FulfilmentService.DbContexts;
+using FulfilmentService.Repositories;
+using FulfilmentService.Services;
 using WMSCommon.Contexts;
 
 using WMSCommon.DbContexts;
@@ -14,9 +15,11 @@ builder.Services.AddControllers();
 
 // Add services to the container.
 builder.Services.AddScoped<AuditInterceptor>();
-builder.Services.AddScoped<IVendorRepository, VendorRepository>();
-builder.Services.AddScoped<IInboundOrderRepository, InboundOrderRepository>();
-builder.Services.AddScoped<IInboundOrderDetailRepository, InboundOrderDetailRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
+builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
+builder.Services.AddScoped<IProductDetailRepository, ProductDetailRepository>();
 builder.Services.AddScoped<IUserContext, UserContext>();
 
 builder.Services.AddControllers()
@@ -27,7 +30,7 @@ builder.Services.AddControllers()
     });
 builder.Services.AddOpenApi();
 builder.Services.AddFrontendAuthentication(builder.Configuration);
-builder.Services.AddMessageBus<InboundDbContext>(builder.Configuration, opts =>
+builder.Services.AddMessageBus<FulfilmentDbContext>(builder.Configuration, opts =>
 {
     opts.Discovery.IncludeAssembly(typeof(Program).Assembly);
 });
@@ -35,7 +38,7 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 app.SetupMiddleware();
-await app.ApplyMigrations<InboundDbContext>("Inbound Service");
+await app.ApplyMigrations<FulfilmentDbContext>("Fulfilment Service");
 
 
 app.Run();

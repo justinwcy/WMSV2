@@ -4,6 +4,8 @@ using InboundService.Models;
 using InboundService.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using WMSCommon.Results;
 
 namespace InboundService.Controllers
@@ -17,9 +19,12 @@ namespace InboundService.Controllers
         [HttpGet("{id:guid}", Name = "GetInboundOrderById")]
         public async Task<ActionResult<InboundOrderReadDTO>> GetInboundOrderById(Guid id)
         {
+            Func<IQueryable<InboundOrder>, IIncludableQueryable<InboundOrder, object>> include = q => q
+                .Include(io => io.IncomingDetails)
+                .Include(io => io.Vendor);
             var inboundOrder = await inboundOrderRepository.GetByIdAsync(
                 id,
-                null);
+                include);
             if (inboundOrder == null)
             {
                 return NotFound();
@@ -69,11 +74,14 @@ namespace InboundService.Controllers
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
+            Func<IQueryable<InboundOrder>, IIncludableQueryable<InboundOrder, object>> include = q => q
+                .Include(io => io.IncomingDetails)
+                .Include(io => io.Vendor);
             var inboundOrders = await inboundOrderRepository.GetAsync(
                 pageNumber, 
                 pageSize,
                 orderBy: c => c.EstimatedReceivedDate,
-                null);
+                include);
             int productCount = await inboundOrderRepository.CountAsync();
 
             IEnumerable<InboundOrderReadDTO> inboundOrderReadDTOs = 

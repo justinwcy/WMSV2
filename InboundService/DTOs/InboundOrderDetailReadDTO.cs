@@ -1,4 +1,5 @@
 ﻿using InboundService.Constants;
+using InboundService.Models;
 
 namespace InboundService.DTOs
 {
@@ -8,6 +9,7 @@ namespace InboundService.DTOs
         public Guid CompanyId { get; set; }
         public Guid InboundOrderId { get; set; }
         public Guid ProductDetailId { get; set; }
+        public ProductDetailReadDTO ProductDetail { get; set; }
         public IncomingStatus Status { get; set; }
         public int Quantity { get; set; }
     }
